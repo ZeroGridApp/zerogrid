@@ -95,11 +95,9 @@ class ZeroChainService {
   final List<ZeroValidator> _validators = [];
   Timer? _blockTimer;
   bool _isRunning = false;
-  bool _seeded = false;
 
   static const _txTypes = ['transfer', 'stake', 'burn', 'domain', 'dns'];
   static const _zidPrefixes = ['zid:zero:alice', 'zid:zero:bob', 'zid:zero:charlie', 'zid:zero:dave', 'zid:zero:eve'];
-  static const _addressPrefixes = ['0xZ'];
 
   static const _validatorDefs = [
     {'id': 'v_alpha', 'name': 'Alpha', 'stakePct': 0.07},
@@ -144,6 +142,17 @@ class ZeroChainService {
 
   ZeroValidator _pickValidator() {
     final active = _validators.where((v) => v.isActive).toList();
+    if (active.isEmpty) {
+      return ZeroValidator(
+        id: 'v_default',
+        name: 'Default',
+        stake: 1.0,
+        blocksProduced: 0,
+        uptime: 100.0,
+        rewardEarned: 0,
+        isActive: true,
+      );
+    }
     final totalStake = active.fold<double>(0, (sum, v) => sum + v.stake);
     var r = _random.nextDouble() * totalStake;
     for (final v in active) {
@@ -229,8 +238,8 @@ class ZeroChainService {
 
   void start() {
     if (_isRunning) return;
-    if (!_seeded) {
-      seedGenesis();
+    if (_validators.isEmpty) {
+      _initValidators();
     }
     _isRunning = true;
     _blockTimer = Timer.periodic(const Duration(seconds: 3), (_) {
@@ -248,6 +257,7 @@ class ZeroChainService {
 
   List<ZeroBlock> getLatestBlocks(int n) {
     final count = n.clamp(1, _blocks.length);
+    if (count == 0) return [];
     return _blocks.sublist(_blocks.length - count).reversed.toList();
   }
 
@@ -261,6 +271,16 @@ class ZeroChainService {
   }
 
   Map<String, dynamic> getChainStats() {
+    if (_blocks.isEmpty) {
+      return {
+        'totalBlocks': 0,
+        'totalTxs': 0,
+        'totalBurned': 0.0,
+        'avgBlockTime': 0.0,
+        'tps': 0.0,
+      };
+    }
+
     final totalBlocks = _blocks.length;
     final totalTxs = _transactions.length;
     final totalBurned = _blocks.fold<double>(0, (sum, b) => sum + b.totalZeroBurned);
@@ -283,70 +303,5 @@ class ZeroChainService {
 
   List<ZeroTransaction> getTransactionsByBlock(int blockNumber) {
     return _transactions.where((tx) => tx.blockNumber == blockNumber).toList();
-  }
-
-  void seedGenesis() {
-    if (_seeded) return;
-    _seeded = true;
-
-    _initValidators();
-
-    final genesis = ZeroBlock(
-      number: 0,
-      hash: '0000000000000000000000000000000000000000000000000000000000000001',
-      previousHash: '0000000000000000000000000000000000000000000000000000000000000000',
-      timestamp: DateTime.now().subtract(const Duration(minutes: 60)),
-      validatorId: 'v_alpha',
-      validatorName: 'Alpha',
-      txCount: 1,
-      totalZeroBurned: 0.0,
-      size: 512,
-    );
-    _blocks.add(genesis);
-
-    _transactions.add(ZeroTransaction(
-      hash: '00000000000000000000000000000000000000000000000000000000000000g1',
-      blockNumber: 0,
-      from: 'zid:zero:genesis',
-      to: 'zid:zero:alpha_1000',
-      amount: 1000000.0,
-      fee: 0.0,
-      type: 'transfer',
-      timestamp: genesis.timestamp,
-      status: 'confirmed',
-    ));
-
-    for (var i = 1; i <= 20; i++) {
-      final validator = _pickValidator();
-      final txCount = 1 + _random.nextInt(3);
-      final totalBurned = (0.01 + _random.nextDouble() * 0.49) * txCount;
-
-      final block = ZeroBlock(
-        number: i,
-        hash: _generateHash(),
-        previousHash: _blocks.last.hash,
-        timestamp: DateTime.now().subtract(Duration(seconds: (20 - i) * 3)),
-        validatorId: validator.id,
-        validatorName: validator.name,
-        txCount: txCount,
-        totalZeroBurned: double.parse(totalBurned.toStringAsFixed(4)),
-        size: 2048 + _random.nextInt(8192),
-      );
-      _blocks.add(block);
-
-      final vIndex = _validators.indexWhere((v) => v.id == validator.id);
-      if (vIndex != -1) {
-        final v = _validators[vIndex];
-        final reward = 0.5 + _random.nextDouble() * 1.5;
-        _validators[vIndex] = v.copyWith(
-          blocksProduced: v.blocksProduced + 1,
-          rewardEarned: v.rewardEarned + double.parse(reward.toStringAsFixed(2)),
-        );
-      }
-
-      for (var j = 0; j < txCount; j++) {
-        _transactions.insert(0, _createRandomTransaction(block.number));
-      }
-    }
   }
 }

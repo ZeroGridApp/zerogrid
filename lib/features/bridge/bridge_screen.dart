@@ -39,7 +39,6 @@ class _ZeroBridgeScreenState extends State<ZeroBridgeScreen> with SingleTickerPr
   @override
   void initState() {
     super.initState();
-    _bridgeService.seedBridgeData();
     _loadData();
 
     _swapAnimController = AnimationController(

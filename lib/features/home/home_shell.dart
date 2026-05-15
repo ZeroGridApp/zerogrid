@@ -32,7 +32,6 @@ class _HomeShellState extends State<HomeShell> {
   @override
   void initState() {
     super.initState();
-    _notificationService.seedDemo();
   }
 
   void _navigateToAddContact() {
@@ -71,7 +70,7 @@ class _HomeShellState extends State<HomeShell> {
         elevation: 0,
         automaticallyImplyLeading: false,
         title: Text(
-          'Zero',
+          'ZeroGrid',
           style: TextStyle(
             fontFamily: 'Inter',
             fontSize: 20,
@@ -131,11 +130,43 @@ class _HomeShellState extends State<HomeShell> {
           ),
         ],
       ),
-      body: AnimatedSwitcher(
-        duration: Duration(milliseconds: 250),
-        switchInCurve: Curves.easeOut,
-        switchOutCurve: Curves.easeIn,
-        child: _tabs[_currentIndex],
+      body: Column(
+        children: [
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  context.zAccent.withOpacity(0.15),
+                  context.zAccent.withOpacity(0.05),
+                ],
+              ),
+              border: Border(
+                bottom: BorderSide(color: context.zAccent.withOpacity(0.2), width: 0.5),
+              ),
+            ),
+            child: Text(
+              _currentIndex == 2 ? 'ZeroGrid Testnet  ·  测试网  ·  v0.1.0' : 'ZeroGrid Testnet  ·  v0.1.0',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontFamily: 'Inter',
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+                color: context.zAccent,
+                letterSpacing: 0.3,
+              ),
+            ),
+          ),
+          Expanded(
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 250),
+              switchInCurve: Curves.easeOut,
+              switchOutCurve: Curves.easeIn,
+              child: _tabs[_currentIndex],
+            ),
+          ),
+        ],
       ),
       floatingActionButton: _currentIndex == 0
           ? FloatingActionButton(

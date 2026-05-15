@@ -20,15 +20,14 @@ class _ZeroNodeMonitorScreenState extends State<ZeroNodeMonitorScreen> {
   @override
   void initState() {
     super.initState();
-    _nodeService.seedDemoData();
   }
 
   @override
   Widget build(BuildContext context) {
     final isZh = ZeroTheme.isZh(context);
-    final status = _nodeService.getStatus();
+    final status = _nodeService.getStatus() ?? NodeStatus(name: '', nodeId: '', status: 'offline', nodeType: 'full', uptime: 0, peersConnected: 0, latency: 0, bandwidthUp: 0, bandwidthDown: 0, storageUsed: 0, storageTotal: 0, blocksSynced: 0, blocksTotal: 0, rewardsEarned: 0, startedAt: DateTime.now());
     final peers = _nodeService.getPeerNodes();
-    final isOnline = status.status == 'online';
+    final isOnline = status?.status == 'online';
 
     return Scaffold(
       appBar: AppBar(

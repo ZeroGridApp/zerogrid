@@ -30,7 +30,6 @@ class _GroupChatListScreenState extends State<GroupChatListScreen> {
   @override
   void initState() {
     super.initState();
-    _groupService.seedDemoData();
   }
 
   List<GroupInfo> get _sortedGroups {

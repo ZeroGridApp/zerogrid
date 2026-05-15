@@ -114,23 +114,5 @@ class ZeroDNSService {
     _registry.remove(name.toLowerCase());
   }
 
-  void seedDemoDomains() {
-    final demoDomains = [
-      'alice', 'bob', 'crypto', 'defi',
-      'nft', 'web3', 'satoshi', 'vitalik',
-    ];
-    final now = DateTime.now();
-    for (final name in demoDomains) {
-      final priceInfo = _priceForName(name);
-      _registry[name] = ZeroDomain(
-        name: name,
-        owner: 'Z${name.hashCode.abs().toString().substring(0, 8)}',
-        registeredAt: now.subtract(Duration(days: name.hashCode.abs() % 365)),
-        expiresAt: now.add(const Duration(days: 730)),
-        resolution: {'zeroId': 'Z${name.hashCode.abs().toString().substring(0, 8)}'},
-        isPremium: priceInfo.isPremium,
-        price: priceInfo.price,
-      );
-    }
-  }
+  
 }

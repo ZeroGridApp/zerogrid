@@ -26,8 +26,8 @@ class _ZeroMarketScreenState extends State<ZeroMarketScreen> {
   bool _isLoading = true;
   bool _isRefreshing = false;
 
-  final _currentUserId = 'did:zero:demo_buyer';
-  final _currentUserName = 'ZeroUser';
+  final _currentUserId = '';
+  final _currentUserName = '';
 
   List<Uint8List> _selectedImages = [];
 
@@ -84,7 +84,6 @@ class _ZeroMarketScreenState extends State<ZeroMarketScreen> {
   @override
   void initState() {
     super.initState();
-    _marketService.seedDemoListings();
     _loadListings();
   }
 
@@ -122,7 +121,7 @@ class _ZeroMarketScreenState extends State<ZeroMarketScreen> {
 
   void _showListingDetail(MarketListing listing) {
     final isZh = ZeroTheme.isZh(context);
-    final usdPrice = (listing.price * _marketService.zeroUsdRate).toStringAsFixed(2);
+    final usdPrice = (listing.price * 0.50).toStringAsFixed(2);
     final stars = _buildStarRating(listing.averageRating);
 
     showModalBottomSheet(
@@ -355,7 +354,7 @@ class _ZeroMarketScreenState extends State<ZeroMarketScreen> {
 
   void _showOrderConfirmation(MarketListing listing) {
     final isZh = ZeroTheme.isZh(context);
-    final usdPrice = (listing.price * _marketService.zeroUsdRate).toStringAsFixed(2);
+    final usdPrice = (listing.price * 0.50).toStringAsFixed(2);
     final savedAddresses = _marketService.getSavedAddresses();
     String selectedAddressId = savedAddresses.isNotEmpty ? savedAddresses.first['id'] ?? '' : '';
     final phoneController = TextEditingController();
@@ -1578,7 +1577,7 @@ class _ZeroMarketScreenState extends State<ZeroMarketScreen> {
 
   void _showOrderDetail(MarketOrder order, String listingTitle, String listingImage) {
     final isZh = ZeroTheme.isZh(context);
-    final usdPrice = (order.price * _marketService.zeroUsdRate).toStringAsFixed(2);
+    final usdPrice = (order.price * 0.50).toStringAsFixed(2);
 
     showModalBottomSheet(
       context: context,
@@ -2530,7 +2529,7 @@ class _ZeroMarketScreenState extends State<ZeroMarketScreen> {
 
   Widget _buildListingCard(MarketListing listing) {
     final isZh = ZeroTheme.isZh(context);
-    final usdPrice = (listing.price * _marketService.zeroUsdRate).toStringAsFixed(2);
+    final usdPrice = (listing.price * 0.50).toStringAsFixed(2);
     final stars = _buildStarRating(listing.averageRating);
     final categoryColor = _getCategoryColor(listing.category);
 

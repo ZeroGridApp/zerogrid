@@ -25,7 +25,6 @@ class _DASNUploadScreenState extends State<DASNUploadScreen> {
   @override
   void initState() {
     super.initState();
-    _storage.seedDemoFiles();
     _loadFiles();
   }
 

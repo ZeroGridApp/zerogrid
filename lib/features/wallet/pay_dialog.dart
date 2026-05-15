@@ -6,6 +6,7 @@ import 'package:zero/services/wallet/bip44_wallet.dart' as bip44;
 import '../../core/theme/colors.dart';
 import '../../core/theme/typography.dart';
 import '../../core/theme/spacing.dart';
+import '../../core/theme/zero_theme.dart';
 import '../../widgets/zero_card.dart';
 
 enum _DialogState { confirm, processing, success, failed }
@@ -190,7 +191,7 @@ class _ZeroPayDialogContentState extends State<_ZeroPayDialogContent>
     try {
       final chainConfig = _rpc.getChainConfig(_chainId);
       if (chainConfig != null) {
-        _usdPrice = chainConfig.mockUsdPrice;
+        _usdPrice = 0.0;
         _feeSymbol = chainConfig.symbol;
       } else {
         _usdPrice = await _rpc.getUsdPrice(_chainId);
@@ -255,19 +256,20 @@ class _ZeroPayDialogContentState extends State<_ZeroPayDialogContent>
 
   @override
   Widget build(BuildContext context) {
+    final isZh = ZeroTheme.isZh(context);
     switch (_state) {
       case _DialogState.confirm:
-        return _buildConfirmState();
+        return _buildConfirmState(isZh);
       case _DialogState.processing:
-        return _buildProcessingState();
+        return _buildProcessingState(isZh);
       case _DialogState.success:
-        return _buildSuccessState();
+        return _buildSuccessState(isZh);
       case _DialogState.failed:
-        return _buildFailedState();
+        return _buildFailedState(isZh);
     }
   }
 
-  Widget _buildConfirmState() {
+  Widget _buildConfirmState(bool isZh) {
     final amountStr = widget.command.amount.toString().contains('.')
         ? widget.command.amount.toString().replaceAll(RegExp(r'0+$'), '').replaceAll(RegExp(r'\.$'), '')
         : widget.command.amount.toStringAsFixed(0);
@@ -300,7 +302,7 @@ class _ZeroPayDialogContentState extends State<_ZeroPayDialogContent>
           ),
           const SizedBox(height: ZeroSpacing.md),
           Text(
-            'Send Payment',
+            isZh ? '发送付款' : 'Send Payment',
             style: ZeroTypography.title(context),
           ),
           const SizedBox(height: ZeroSpacing.lg),
@@ -327,34 +329,34 @@ class _ZeroPayDialogContentState extends State<_ZeroPayDialogContent>
           const SizedBox(height: ZeroSpacing.md),
           _buildInfoRow(
             Icons.account_balance_wallet_outlined,
-            'From',
+            isZh ? '发送方' : 'From',
             _abbreviate(widget.fromAddress),
           ),
           const SizedBox(height: ZeroSpacing.sm),
           _buildInfoRow(
             Icons.arrow_forward_rounded,
-            'To',
+            isZh ? '接收方' : 'To',
             widget.command.toIdentity ?? _abbreviate(widget.command.toAddress ?? '—'),
           ),
           const SizedBox(height: ZeroSpacing.sm),
           _buildInfoRow(
             Icons.language_rounded,
-            'Network',
+            isZh ? '网络' : 'Network',
             _chainName,
           ),
           const SizedBox(height: ZeroSpacing.sm),
           _buildInfoRow(
             Icons.speed_rounded,
-            'Estimated Fee',
+            isZh ? '预估费用' : 'Estimated Fee',
             _estimatedFee > 0
                 ? '${_estimatedFee.toStringAsFixed(6)} ${_feeSymbol ?? _tokenSymbol}'
-                : 'Calculating...',
+                : (isZh ? '计算中...' : 'Calculating...'),
             valueColor: context.zTextSecondary,
           ),
           const SizedBox(height: ZeroSpacing.lg),
-          _buildConfirmButton(),
+          _buildConfirmButton(isZh),
           const SizedBox(height: ZeroSpacing.sm),
-          _buildCancelButton(),
+          _buildCancelButton(isZh),
           const SizedBox(height: ZeroSpacing.xs),
         ],
       ),
@@ -385,7 +387,7 @@ class _ZeroPayDialogContentState extends State<_ZeroPayDialogContent>
     );
   }
 
-  Widget _buildConfirmButton() {
+  Widget _buildConfirmButton(bool isZh) {
     return SizedBox(
       width: double.infinity,
       height: 52,
@@ -408,7 +410,7 @@ class _ZeroPayDialogContentState extends State<_ZeroPayDialogContent>
             onTap: _confirmPayment,
             child: Center(
               child: Text(
-                'Confirm & Pay',
+                isZh ? '确认并支付' : 'Confirm & Pay',
                 style: ZeroTypography.bodyBold(context).copyWith(
                   color: Colors.white,
                   fontSize: 16,
@@ -421,7 +423,7 @@ class _ZeroPayDialogContentState extends State<_ZeroPayDialogContent>
     );
   }
 
-  Widget _buildCancelButton() {
+  Widget _buildCancelButton(bool isZh) {
     return SizedBox(
       width: double.infinity,
       height: 48,
@@ -432,7 +434,7 @@ class _ZeroPayDialogContentState extends State<_ZeroPayDialogContent>
           onTap: () => _close(),
           child: Center(
             child: Text(
-              'Cancel',
+              isZh ? '取消' : 'Cancel',
               style: ZeroTypography.body(context).copyWith(
                 color: context.zTextTertiary,
               ),
@@ -443,7 +445,7 @@ class _ZeroPayDialogContentState extends State<_ZeroPayDialogContent>
     );
   }
 
-  Widget _buildProcessingState() {
+  Widget _buildProcessingState(bool isZh) {
     return ZeroCard(
       padding: const EdgeInsets.symmetric(horizontal: ZeroSpacing.xl, vertical: ZeroSpacing.xxl),
       child: Column(
@@ -482,7 +484,7 @@ class _ZeroPayDialogContentState extends State<_ZeroPayDialogContent>
           ),
           const SizedBox(height: ZeroSpacing.lg),
           Text(
-            'Processing payment...',
+            isZh ? '正在处理支付...' : 'Processing payment...',
             style: ZeroTypography.title(context),
           ),
           const SizedBox(height: ZeroSpacing.sm),
@@ -507,7 +509,7 @@ class _ZeroPayDialogContentState extends State<_ZeroPayDialogContent>
                   ).createShader(bounds);
                 },
                 child: Text(
-                  'Please wait while we process your transaction on the blockchain',
+                  isZh ? '请稍候，我们正在处理您的链上交易' : 'Please wait while we process your transaction on the blockchain',
                   style: ZeroTypography.caption(context),
                   textAlign: TextAlign.center,
                 ),
@@ -520,7 +522,7 @@ class _ZeroPayDialogContentState extends State<_ZeroPayDialogContent>
     );
   }
 
-  Widget _buildSuccessState() {
+  Widget _buildSuccessState(bool isZh) {
     final txHash = _result?.txHash ?? '';
     final amountStr = widget.command.amount.toString().contains('.')
         ? widget.command.amount.toString().replaceAll(RegExp(r'0+$'), '').replaceAll(RegExp(r'\.$'), '')
@@ -565,14 +567,14 @@ class _ZeroPayDialogContentState extends State<_ZeroPayDialogContent>
           ),
           const SizedBox(height: ZeroSpacing.lg),
           Text(
-            'Payment Successful',
+            isZh ? '支付成功' : 'Payment Successful',
             style: ZeroTypography.headline(context).copyWith(
               color: context.zSuccess,
             ),
           ),
           const SizedBox(height: ZeroSpacing.xs),
           Text(
-            '$amountStr $_tokenSymbol sent successfully',
+            isZh ? '$amountStr $_tokenSymbol 发送成功' : '$amountStr $_tokenSymbol sent successfully',
             style: ZeroTypography.body(context),
           ),
           const SizedBox(height: ZeroSpacing.md),
@@ -584,7 +586,7 @@ class _ZeroPayDialogContentState extends State<_ZeroPayDialogContent>
           Row(
             children: [
               Text(
-                'Transaction Hash',
+                isZh ? '交易哈希' : 'Transaction Hash',
                 style: ZeroTypography.caption(context),
               ),
               const Spacer(),
@@ -601,14 +603,14 @@ class _ZeroPayDialogContentState extends State<_ZeroPayDialogContent>
             ],
           ),
           const SizedBox(height: ZeroSpacing.lg),
-          _buildDoneButton(),
+          _buildDoneButton(isZh),
           const SizedBox(height: ZeroSpacing.xs),
         ],
       ),
     );
   }
 
-  Widget _buildDoneButton() {
+  Widget _buildDoneButton(bool isZh) {
     return SizedBox(
       width: double.infinity,
       height: 52,
@@ -631,7 +633,7 @@ class _ZeroPayDialogContentState extends State<_ZeroPayDialogContent>
             onTap: () => _close(_result),
             child: Center(
               child: Text(
-                'Done',
+                isZh ? '完成' : 'Done',
                 style: ZeroTypography.bodyBold(context).copyWith(
                   color: Colors.white,
                   fontSize: 16,
@@ -644,7 +646,7 @@ class _ZeroPayDialogContentState extends State<_ZeroPayDialogContent>
     );
   }
 
-  Widget _buildFailedState() {
+  Widget _buildFailedState(bool isZh) {
     final amountStr = widget.command.amount.toString().contains('.')
         ? widget.command.amount.toString().replaceAll(RegExp(r'0+$'), '').replaceAll(RegExp(r'\.$'), '')
         : widget.command.amount.toStringAsFixed(0);
@@ -670,14 +672,14 @@ class _ZeroPayDialogContentState extends State<_ZeroPayDialogContent>
           ),
           const SizedBox(height: ZeroSpacing.lg),
           Text(
-            'Payment Failed',
+            isZh ? '支付失败' : 'Payment Failed',
             style: ZeroTypography.headline(context).copyWith(
               color: context.zError,
             ),
           ),
           const SizedBox(height: ZeroSpacing.xs),
           Text(
-            '$amountStr $_tokenSymbol was not sent',
+            isZh ? '$amountStr $_tokenSymbol 发送失败' : '$amountStr $_tokenSymbol was not sent',
             style: ZeroTypography.body(context),
           ),
           if (_errorMessage != null) ...[
@@ -703,16 +705,16 @@ class _ZeroPayDialogContentState extends State<_ZeroPayDialogContent>
             ),
           ],
           const SizedBox(height: ZeroSpacing.lg),
-          _buildRetryButton(),
+          _buildRetryButton(isZh),
           const SizedBox(height: ZeroSpacing.sm),
-          _buildCloseTextButton(),
+          _buildCloseTextButton(isZh),
           const SizedBox(height: ZeroSpacing.xs),
         ],
       ),
     );
   }
 
-  Widget _buildRetryButton() {
+  Widget _buildRetryButton(bool isZh) {
     return SizedBox(
       width: double.infinity,
       height: 52,
@@ -735,7 +737,7 @@ class _ZeroPayDialogContentState extends State<_ZeroPayDialogContent>
             onTap: _confirmPayment,
             child: Center(
               child: Text(
-                'Try Again',
+                isZh ? '重试' : 'Try Again',
                 style: ZeroTypography.bodyBold(context).copyWith(
                   color: Colors.white,
                   fontSize: 16,
@@ -748,7 +750,7 @@ class _ZeroPayDialogContentState extends State<_ZeroPayDialogContent>
     );
   }
 
-  Widget _buildCloseTextButton() {
+  Widget _buildCloseTextButton(bool isZh) {
     return SizedBox(
       width: double.infinity,
       height: 48,
@@ -759,7 +761,7 @@ class _ZeroPayDialogContentState extends State<_ZeroPayDialogContent>
           onTap: () => _close(_result),
           child: Center(
             child: Text(
-              'Close',
+              isZh ? '关闭' : 'Close',
               style: ZeroTypography.body(context).copyWith(
                 color: context.zTextTertiary,
               ),

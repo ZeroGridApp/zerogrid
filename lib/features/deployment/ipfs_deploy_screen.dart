@@ -18,9 +18,6 @@ class IpfsDeployScreen extends StatefulWidget {
 }
 
 class _IpfsDeployScreenState extends State<IpfsDeployScreen> {
-  bool _isDeploying = false;
-  String? _deployedCid;
-  double _deployProgress = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -119,15 +116,11 @@ class _IpfsDeployScreenState extends State<IpfsDeployScreen> {
             ],
             isZh,
           ),
-          if (_deployedCid != null) ...[
-            SizedBox(height: ZeroSpacing.md),
-            _buildResultCid(isZh),
-          ],
           SizedBox(height: ZeroSpacing.md),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: _isDeploying ? null : _simulateDeploy,
+              onPressed: _onDeployTap,
               style: ElevatedButton.styleFrom(
                 backgroundColor: context.zAccent,
                 foregroundColor: context.zBg,
@@ -136,139 +129,17 @@ class _IpfsDeployScreenState extends State<IpfsDeployScreen> {
                   borderRadius: BorderRadius.circular(ZeroSpacing.buttonRadius),
                 ),
               ),
-              child: _isDeploying
-                  ? Column(
-                      children: [
-                        LinearProgressIndicator(
-                          value: _deployProgress > 0 && _deployProgress < 1
-                              ? _deployProgress
-                              : null,
-                          backgroundColor: context.zAccent.withOpacity(0.3),
-                          valueColor: AlwaysStoppedAnimation<Color>(context.zBg),
-                        ),
-                        SizedBox(height: ZeroSpacing.xs),
-                        Text(
-                          isZh ? '部署中...' : 'Deploying...',
-                          style: TextStyle(
-                            fontFamily: isZh ? 'NotoSansSC' : 'Inter',
-                            fontSize: 13,
-                          ),
-                        ),
-                      ],
-                    )
-                  : Text(
-                      isZh ? '模拟部署' : 'Simulate Deploy',
-                      style: TextStyle(
-                        fontFamily: isZh ? 'NotoSansSC' : 'Inter',
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
+              child: Text(
+                isZh ? '部署' : 'Deploy',
+                style: TextStyle(
+                  fontFamily: isZh ? 'NotoSansSC' : 'Inter',
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildResultCid(bool isZh) {
-    const cid = 'QmZero7x9aFakeCID1234567890abcdefghijklmnop';
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          isZh ? '部署成功！' : 'Deploy Success!',
-          style: ZeroTypography.bodyBold(context).copyWith(
-            color: context.zAccent,
-          ),
-        ),
-        SizedBox(height: ZeroSpacing.sm),
-        GestureDetector(
-          onTap: () {
-            Clipboard.setData(const ClipboardData(text: cid));
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(isZh ? 'CID 已复制到剪贴板' : 'CID copied to clipboard'),
-              ),
-            );
-          },
-          child: Container(
-            width: double.infinity,
-            padding: EdgeInsets.all(ZeroSpacing.sm + 4),
-            decoration: BoxDecoration(
-              color: context.zSurfaceOverlay.withOpacity(0.5),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: context.zFrostWhiteStrong),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    'CID: $cid',
-                    style: ZeroTypography.monoSmall(context),
-                  ),
-                ),
-                Icon(
-                  Icons.copy_rounded,
-                  size: 16,
-                  color: context.zTextSecondary,
-                ),
-              ],
-            ),
-          ),
-        ),
-        SizedBox(height: ZeroSpacing.sm),
-        Text(
-          isZh ? '网关链接:' : 'Gateway URLs:',
-          style: ZeroTypography.bodyBold(context).copyWith(fontSize: 13),
-        ),
-        SizedBox(height: ZeroSpacing.xs),
-        _buildGatewayLink('https://ipfs.io/ipfs/$cid', isZh),
-        SizedBox(height: ZeroSpacing.xs),
-        _buildGatewayLink('https://cloudflare-ipfs.com/ipfs/$cid', isZh),
-        SizedBox(height: ZeroSpacing.xs),
-        _buildGatewayLink('https://gateway.pinata.cloud/ipfs/$cid', isZh),
-      ],
-    );
-  }
-
-  Widget _buildGatewayLink(String url, bool isZh) {
-    return GestureDetector(
-      onTap: () {
-        Clipboard.setData(ClipboardData(text: url));
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(isZh ? 'URL 已复制到剪贴板' : 'URL copied to clipboard'),
-          ),
-        );
-      },
-      child: Container(
-        padding: EdgeInsets.symmetric(
-          horizontal: 10,
-          vertical: ZeroSpacing.sm,
-        ),
-        decoration: BoxDecoration(
-          color: context.zFrostWhite,
-          borderRadius: BorderRadius.circular(6),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Text(
-                url,
-                style: ZeroTypography.monoSmall(context).copyWith(
-                  color: context.zAccent,
-                ),
-              ),
-            ),
-            Icon(
-              Icons.copy_rounded,
-              size: 14,
-              color: context.zTextSecondary,
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -741,24 +612,14 @@ class _IpfsDeployScreenState extends State<IpfsDeployScreen> {
     );
   }
 
-  Future<void> _simulateDeploy() async {
-    setState(() {
-      _isDeploying = true;
-      _deployProgress = 0;
-    });
-
-    for (var i = 0; i <= 100; i += 10) {
-      await Future.delayed(const Duration(milliseconds: 150));
-      if (!mounted) return;
-      setState(() {
-        _deployProgress = i / 100;
-      });
-    }
-
-    if (!mounted) return;
-    setState(() {
-      _isDeploying = false;
-      _deployedCid = 'QmZero7x9aFakeCID1234567890abcdefghijklmnop';
-    });
+  Future<void> _onDeployTap() async {
+    final isZh = ZeroTheme.isZh(context);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(isZh ? 'IPFS 部署即将推出' : 'IPFS deployment coming soon'),
+        backgroundColor: context.zAccent,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
   }
 }

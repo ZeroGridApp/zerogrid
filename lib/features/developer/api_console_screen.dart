@@ -124,18 +124,18 @@ final List<_ApiCategory> _categories = [
             '  "created_at": "2025-01-15T08:30:00Z",\n'
             '  "updated_at": "2026-05-10T14:22:00Z"\n'
             '}',
-        mockResponseBuilder: (bodyParams) => _prettyPrint({
-          'did': 'did:zero:0x7a3b8e2d1c6f4a9b8d2e1c6f4a9b8d2e1c6f4a9b',
-          'nickname': 'alice.zero',
-          'avatar': 'bafkreia4x3q2l7n5m8p9k1j6h4f3d2s1a0z9x8c7v6b5n',
-          'bio': 'Zero Protocol builder & privacy advocate',
-          'verified_socials': [
-            {'platform': 'twitter', 'handle': '@alice_zero'},
-            {'platform': 'github', 'handle': 'alice-dev'},
-          ],
-          'created_at': '2025-01-15T08:30:00Z',
-          'updated_at': '2026-05-10T14:22:00Z',
-        }),
+        mockResponseBuilder: (bodyParams) {
+          final did = bodyParams?['did'] ?? 'did:zero:0x${_randomHex(32)}';
+          return _prettyPrint({
+            'did': did,
+            'nickname': 'user_${_randomHex(8)}',
+            'avatar': 'bafkreia${_randomHex(32)}',
+            'bio': 'Zero Protocol user',
+            'verified_socials': <Map<String, String>>[],
+            'created_at': DateTime.now().subtract(const Duration(days: 180)).toIso8601String(),
+            'updated_at': DateTime.now().toIso8601String(),
+          });
+        },
       ),
       _ApiEndpoint(
         method: _HttpMethod.post,
@@ -158,8 +158,8 @@ final List<_ApiCategory> _categories = [
             '}',
         mockResponseBuilder: (bodyParams) => _prettyPrint({
           'valid': true,
-          'did': bodyParams?['did'] ?? 'did:zero:0x7a3b8e2d1c6f4a9b',
-          'verified_at': '2026-05-15T10:00:01Z',
+          'did': bodyParams?['did'] ?? 'did:zero:0x${_randomHex(32)}',
+          'verified_at': DateTime.now().toIso8601String(),
         }),
       ),
       _ApiEndpoint(
@@ -186,18 +186,21 @@ final List<_ApiCategory> _categories = [
             '  "page": 1,\n'
             '  "limit": 5\n'
             '}',
-        mockResponseBuilder: (bodyParams) => _prettyPrint({
-          'contacts': [
-            {'did': 'did:zero:0xb2c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2', 'nickname': 'bob.zero', 'trust_level': 'verified'},
-            {'did': 'did:zero:0xc5d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5', 'nickname': 'carol.zero', 'trust_level': 'mutual'},
-            {'did': 'did:zero:0xd8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7', 'nickname': 'dave.zero', 'trust_level': 'pending'},
-            {'did': 'did:zero:0xe0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9', 'nickname': 'eve.zero', 'trust_level': 'verified'},
-            {'did': 'did:zero:0xf1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0', 'nickname': 'frank.zero', 'trust_level': 'mutual'},
-          ],
-          'total': 42,
-          'page': 1,
-          'limit': 5,
-        }),
+        mockResponseBuilder: (bodyParams) {
+          final limit = int.tryParse(bodyParams?['limit'] ?? '3') ?? 3;
+          final page = int.tryParse(bodyParams?['page'] ?? '1') ?? 1;
+          final trustLevels = ['verified', 'mutual', 'pending'];
+          return _prettyPrint({
+            'contacts': List.generate(limit, (i) => {
+              'did': 'did:zero:0x${_randomHex(32)}',
+              'nickname': 'user_${_randomHex(6)}',
+              'trust_level': trustLevels[i % trustLevels.length],
+            }),
+            'total': 0,
+            'page': page,
+            'limit': limit,
+          });
+        },
       ),
     ],
   ),

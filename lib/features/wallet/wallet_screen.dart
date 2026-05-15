@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import '../../core/theme/colors.dart';
 import '../../core/theme/spacing.dart';
 import '../../core/theme/typography.dart';
+import '../../core/theme/zero_theme.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../../services/crypto/zero_crypto.dart';
 import '../../services/identity_service.dart';
@@ -201,33 +202,7 @@ class _WalletScreenState extends State<WalletScreen> with TickerProviderStateMix
   bool _isRefreshing = false;
   int _selectedIndex = 0;
 
-  final List<_ContactEntry> _contacts = [
-    const _ContactEntry(
-      label: "Bob's ETH",
-      address: '0x742d35Cc6634C0532925a3b844Bc9e7595f2bD18',
-      chainId: 'ETH',
-    ),
-    const _ContactEntry(
-      label: 'Trading Wallet',
-      address: '0x28C6c06298d514Db089934071355E5743bf21d60',
-      chainId: 'ETH',
-    ),
-    const _ContactEntry(
-      label: 'Cold Storage',
-      address: 'bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq',
-      chainId: 'BTC',
-    ),
-    const _ContactEntry(
-      label: 'DeFi Vault',
-      address: '0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B',
-      chainId: 'BSC',
-    ),
-    const _ContactEntry(
-      label: 'Solana Staking',
-      address: '7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV',
-      chainId: 'SOL',
-    ),
-  ];
+  final List<_ContactEntry> _contacts = [];
 
   @override
   void initState() {
@@ -258,15 +233,52 @@ class _WalletScreenState extends State<WalletScreen> with TickerProviderStateMix
         return ZeroCrypto().mnemonicToSeed(identity.mnemonic);
       }
     } catch (_) {}
-    return ZeroCrypto().mnemonicToSeed(
-      'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about',
-    );
+    return null;
+  }
+
+  List<WalletBalance> _generateDemoWallets() {
+    final rand = Random();
+    const chars = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+    String genAddr(int len) {
+      return String.fromCharCodes(List.generate(len, (_) => chars.codeUnitAt(rand.nextInt(chars.length))));
+    }
+
+    return _chainOrder.map((chain) {
+      int addrLen;
+      String prefix;
+      switch (chain) {
+        case 'BTC':
+          addrLen = 34;
+          prefix = '1';
+          break;
+        case 'TRX':
+          addrLen = 34;
+          prefix = 'T';
+          break;
+        default:
+          addrLen = 42;
+          prefix = '0x';
+      }
+      return WalletBalance(
+        chainId: chain,
+        symbol: _chainUnits[chain]!,
+        address: prefix == '0x' ? '$prefix${genAddr(addrLen - 2)}' : '$prefix${genAddr(addrLen - 1)}',
+        balance: 0,
+        balanceUsd: 0,
+        recentTxs: const [],
+      );
+    }).toList();
   }
 
   Future<void> _initWallet() async {
     final seed = await _getSeed();
     if (seed == null) {
-      setState(() => _isLoading = false);
+      final wallets = _generateDemoWallets();
+      if (!mounted) return;
+      setState(() {
+        _wallets = wallets;
+        _isLoading = false;
+      });
       return;
     }
 
@@ -463,6 +475,7 @@ class _WalletScreenState extends State<WalletScreen> with TickerProviderStateMix
 
   void _showGenericActionDialog(String action) {
     final l10n = AppLocalizations.of(context);
+    final isZh = ZeroTheme.isZh(context);
 
     final actionLabel = switch (action) {
       'Send' => l10n.walletSend,
@@ -536,7 +549,9 @@ class _WalletScreenState extends State<WalletScreen> with TickerProviderStateMix
                   SizedBox(width: ZeroSpacing.sm),
                   Expanded(
                     child: Text(
-                      'This feature will be available in the next update. Zero-fee transfers coming soon.',
+                      isZh
+                          ? '此功能将在下一次更新中可用。零手续费转账即将推出。'
+                          : 'This feature will be available in the next update. Zero-fee transfers coming soon.',
                       style: ZeroTypography.caption(context),
                     ),
                   ),
@@ -574,6 +589,7 @@ class _WalletScreenState extends State<WalletScreen> with TickerProviderStateMix
   }
 
   void _showReceiveModal() {
+    final isZh = ZeroTheme.isZh(context);
     String selectedChain = _currentWallet.chainId;
 
     showModalBottomSheet(
@@ -617,7 +633,9 @@ class _WalletScreenState extends State<WalletScreen> with TickerProviderStateMix
                   ),
                   SizedBox(height: ZeroSpacing.xs),
                   Text(
-                    'Scan QR to receive on ${_chainNames[selectedChain]}',
+                    isZh
+                        ? '扫码接收 ${_chainNames[selectedChain]} 资产'
+                        : 'Scan QR to receive on ${_chainNames[selectedChain]}',
                     style: ZeroTypography.caption(context),
                   ),
                   SizedBox(height: ZeroSpacing.lg),
@@ -857,6 +875,7 @@ class _WalletScreenState extends State<WalletScreen> with TickerProviderStateMix
   }
 
   void _showSwapComingSoon() {
+    final isZh = ZeroTheme.isZh(context);
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -917,7 +936,9 @@ class _WalletScreenState extends State<WalletScreen> with TickerProviderStateMix
             Padding(
               padding: EdgeInsets.symmetric(horizontal: ZeroSpacing.md),
               child: Text(
-                'Cross-chain swaps via ZeroPay are coming soon.\nSwap BTC, ETH, SOL and more — zero fees, instant settlement.',
+                isZh
+                    ? '通过 ZeroPay 的跨链兑换即将推出。\n兑换 BTC, ETH, SOL 等 — 零手续费，即时结算。'
+                    : 'Cross-chain swaps via ZeroPay are coming soon.\nSwap BTC, ETH, SOL and more — zero fees, instant settlement.',
                 style: ZeroTypography.body(context),
                 textAlign: TextAlign.center,
               ),
@@ -985,34 +1006,20 @@ class _WalletScreenState extends State<WalletScreen> with TickerProviderStateMix
   }
 
   void _showTransactionDetail(TransactionRecord tx) {
+    final isZh = ZeroTheme.isZh(context);
     final chainId = _currentWallet.chainId;
     final accent = _currentAccent;
     final unit = _chainUnits[chainId]!;
     final walletAddress = _currentWallet.address;
-    final rng = Random(tx.hash.hashCode);
 
-    final mockOtherAddr = chainId == 'BTC'
-        ? 'bc1q${_randomHex(38, rng)}'
-        : '0x${_randomHex(40, rng)}';
-
-    final fromAddr = tx.incoming ? mockOtherAddr : walletAddress;
-    final toAddr = tx.incoming ? walletAddress : mockOtherAddr;
+    final fromAddr = tx.incoming ? '...' : walletAddress;
+    final toAddr = tx.incoming ? walletAddress : '...';
 
     final isConfirmed = tx.time.isBefore(DateTime.now().subtract(const Duration(minutes: 5)));
-    final status = isConfirmed ? 'Confirmed' : 'Pending';
+    final status = isConfirmed
+        ? (isZh ? '已确认' : 'Confirmed')
+        : (isZh ? '待确认' : 'Pending');
     final statusColor = isConfirmed ? context.zSuccess : context.zWarning;
-
-    final feeAmount = switch (chainId) {
-      'BTC' => 0.00005 + rng.nextDouble() * 0.00015,
-      'ETH' => 0.001 + rng.nextDouble() * 0.004,
-      'BSC' => 0.0005 + rng.nextDouble() * 0.001,
-      'TRX' => 0.1 + rng.nextDouble() * 0.5,
-      'SOL' => 0.000005 + rng.nextDouble() * 0.00001,
-      _ => 0.001,
-    };
-    final feeUnit = chainId == 'ETH' || chainId == 'BSC' ? 'ETH' : unit;
-    final feePrice = _usdPrices[chainId] ?? 0;
-    final feeUsd = feeAmount * feePrice;
 
     final explorerUrl = '${_explorerUrls[chainId]}${tx.hash}';
 
@@ -1125,33 +1132,33 @@ class _WalletScreenState extends State<WalletScreen> with TickerProviderStateMix
               SizedBox(height: ZeroSpacing.lg),
               Container(height: 0.5, color: context.zDivider.withOpacity(0.3)),
               SizedBox(height: ZeroSpacing.lg),
-              _buildDetailRow(ctx, 'Transaction Hash', tx.hash, monospace: true, fullWidth: true),
+              _buildDetailRow(ctx, isZh ? '交易哈希' : 'Transaction Hash', tx.hash, monospace: true, fullWidth: true),
               SizedBox(height: ZeroSpacing.md),
-              _buildDetailRow(ctx, 'From', fromAddr, monospace: true, copyable: true),
+              _buildDetailRow(ctx, isZh ? '发送方' : 'From', fromAddr, monospace: true, copyable: true),
               SizedBox(height: ZeroSpacing.md),
-              _buildDetailRow(ctx, 'To', toAddr, monospace: true, copyable: true),
+              _buildDetailRow(ctx, isZh ? '接收方' : 'To', toAddr, monospace: true, copyable: true),
               SizedBox(height: ZeroSpacing.md),
               _buildDetailRow(
                 ctx,
-                'Amount',
+                isZh ? '金额' : 'Amount',
                 '${tx.incoming ? '+' : '-'}${_formatBalance(tx.amount)} $unit',
               ),
               SizedBox(height: ZeroSpacing.md),
               _buildDetailRow(
                 ctx,
-                'Value',
+                isZh ? '价值' : 'Value',
                 '\$ ${_formatUsd(tx.usdValue)}',
               ),
               SizedBox(height: ZeroSpacing.md),
               _buildDetailRow(
                 ctx,
-                'Network Fee',
-                '${feeAmount.toStringAsFixed(6)} $feeUnit  (\$ ${_formatUsd(feeUsd)})',
+                isZh ? '网络费用' : 'Network Fee',
+                '—',
               ),
               SizedBox(height: ZeroSpacing.md),
               _buildDetailRow(
                 ctx,
-                'Timestamp',
+                isZh ? '时间戳' : 'Timestamp',
                 '${tx.time.toString().substring(0, 19)}',
               ),
               SizedBox(height: ZeroSpacing.lg),
@@ -1165,7 +1172,7 @@ class _WalletScreenState extends State<WalletScreen> with TickerProviderStateMix
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(
-                          'Explorer link copied',
+                          isZh ? '浏览器链接已复制' : 'Explorer link copied',
                           style: ZeroTypography.caption(context).copyWith(
                             color: context.zTextPrimary,
                           ),
@@ -1185,7 +1192,7 @@ class _WalletScreenState extends State<WalletScreen> with TickerProviderStateMix
                   },
                   icon: Icon(Icons.open_in_browser, size: 16, color: accent),
                   label: Text(
-                    'View on ${_getExplorerName(chainId)}',
+                    isZh ? '在 ${_getExplorerName(chainId)} 上查看' : 'View on ${_getExplorerName(chainId)}',
                     style: TextStyle(
                       fontFamily: 'Inter',
                       fontSize: 13,
@@ -1312,6 +1319,7 @@ class _WalletScreenState extends State<WalletScreen> with TickerProviderStateMix
   }
 
   void _showAddressBook() {
+    final isZh = ZeroTheme.isZh(context);
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -1359,7 +1367,7 @@ class _WalletScreenState extends State<WalletScreen> with TickerProviderStateMix
                             ),
                             SizedBox(width: ZeroSpacing.sm),
                             Text(
-                              'Address Book',
+                              isZh ? '地址簿' : 'Address Book',
                               style: ZeroTypography.title(context),
                             ),
                             const Spacer(),
@@ -1393,7 +1401,7 @@ class _WalletScreenState extends State<WalletScreen> with TickerProviderStateMix
                                     ),
                                     SizedBox(width: ZeroSpacing.xs),
                                     Text(
-                                      'Add',
+                                      isZh ? '添加' : 'Add',
                                       style: TextStyle(
                                         fontFamily: 'Inter',
                                         fontSize: 12,
@@ -1540,7 +1548,7 @@ class _WalletScreenState extends State<WalletScreen> with TickerProviderStateMix
                           ),
                         ),
                         child: Text(
-                          'Close',
+                          isZh ? '关闭' : 'Close',
                           style:
                               ZeroTypography.bodyBold(context).copyWith(
                             color: context.zTextSecondary,
@@ -1562,6 +1570,7 @@ class _WalletScreenState extends State<WalletScreen> with TickerProviderStateMix
   }
 
   void _showAddContactForm() {
+    final isZh = ZeroTheme.isZh(context);
     final labelController = TextEditingController();
     final addressController = TextEditingController();
     String selectedChain = 'ETH';
@@ -1601,12 +1610,12 @@ class _WalletScreenState extends State<WalletScreen> with TickerProviderStateMix
                     ),
                     SizedBox(height: ZeroSpacing.lg),
                     Text(
-                      'Add Contact',
+                      isZh ? '添加联系人' : 'Add Contact',
                       style: ZeroTypography.title(context),
                     ),
                     SizedBox(height: ZeroSpacing.lg),
                     Text(
-                      'Label',
+                      isZh ? '标签' : 'Label',
                       style: ZeroTypography.caption(context).copyWith(
                         letterSpacing: 1,
                       ),
@@ -1627,7 +1636,7 @@ class _WalletScreenState extends State<WalletScreen> with TickerProviderStateMix
                           color: context.zTextPrimary,
                         ),
                         decoration: InputDecoration(
-                          hintText: "Bob's Wallet",
+                          hintText: isZh ? 'Bob 的钱包' : "Bob's Wallet",
                           hintStyle: ZeroTypography.body(context).copyWith(
                             color: context.zTextTertiary,
                           ),
@@ -1641,7 +1650,7 @@ class _WalletScreenState extends State<WalletScreen> with TickerProviderStateMix
                     ),
                     SizedBox(height: ZeroSpacing.md),
                     Text(
-                      'Address',
+                      isZh ? '地址' : 'Address',
                       style: ZeroTypography.caption(context).copyWith(
                         letterSpacing: 1,
                       ),
@@ -1678,7 +1687,7 @@ class _WalletScreenState extends State<WalletScreen> with TickerProviderStateMix
                     ),
                     SizedBox(height: ZeroSpacing.md),
                     Text(
-                      'Chain',
+                      isZh ? '链' : 'Chain',
                       style: ZeroTypography.caption(context).copyWith(
                         letterSpacing: 1,
                       ),
@@ -1746,7 +1755,7 @@ class _WalletScreenState extends State<WalletScreen> with TickerProviderStateMix
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text(
-                                  'Contact added',
+                                  isZh ? '联系人已添加' : 'Contact added',
                                   style: ZeroTypography.caption(context)
                                       .copyWith(color: context.zTextPrimary),
                                 ),
@@ -1780,7 +1789,7 @@ class _WalletScreenState extends State<WalletScreen> with TickerProviderStateMix
                           ),
                         ),
                         child: Text(
-                          'Save Contact',
+                          isZh ? '保存联系人' : 'Save Contact',
                           style: TextStyle(
                             fontFamily: 'Inter',
                             fontSize: 14,
@@ -1981,6 +1990,7 @@ class _WalletScreenState extends State<WalletScreen> with TickerProviderStateMix
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final isZh = ZeroTheme.isZh(context);
 
     if (_isLoading) {
       return Scaffold(
@@ -2040,7 +2050,7 @@ class _WalletScreenState extends State<WalletScreen> with TickerProviderStateMix
                     )
                   : Icon(Icons.refresh, color: context.zTextSecondary, size: 20),
               onPressed: _isRefreshing ? null : _onRefresh,
-              tooltip: 'Refresh',
+              tooltip: isZh ? '刷新' : 'Refresh',
             ),
           ),
           Padding(
@@ -2055,7 +2065,7 @@ class _WalletScreenState extends State<WalletScreen> with TickerProviderStateMix
             child: IconButton(
               icon: Icon(Icons.link_rounded, color: context.zWarning, size: 22),
               onPressed: () => Navigator.of(context).push(MaterialPageRoute(fullscreenDialog: true, builder: (_) => const ZeroChainExplorer())),
-              tooltip: 'ZeroChain',
+              tooltip: isZh ? '零链' : 'ZeroChain',
             ),
           ),
           Padding(
@@ -2063,7 +2073,7 @@ class _WalletScreenState extends State<WalletScreen> with TickerProviderStateMix
             child: IconButton(
               icon: Icon(Icons.language_rounded, color: context.zAccent, size: 22),
               onPressed: () => Navigator.of(context).push(MaterialPageRoute(fullscreenDialog: true, builder: (_) => const ZeroDNSScreen())),
-              tooltip: 'ZeroDNS',
+              tooltip: isZh ? '零域名' : 'ZeroDNS',
             ),
           ),
           Padding(
@@ -2071,7 +2081,7 @@ class _WalletScreenState extends State<WalletScreen> with TickerProviderStateMix
             child: IconButton(
               icon: Icon(Icons.storefront_rounded, color: context.zCeladon, size: 22),
               onPressed: () => Navigator.of(context).push(MaterialPageRoute(fullscreenDialog: true, builder: (_) => const ZeroMarketScreen())),
-              tooltip: 'ZeroMarket',
+              tooltip: isZh ? '零市场' : 'ZeroMarket',
             ),
           ),
           Padding(
@@ -2079,7 +2089,7 @@ class _WalletScreenState extends State<WalletScreen> with TickerProviderStateMix
             child: IconButton(
               icon: Icon(Icons.account_balance_rounded, color: const Color(0xFF9B59B6), size: 22),
               onPressed: () => Navigator.of(context).push(MaterialPageRoute(fullscreenDialog: true, builder: (_) => const ZeroDAOScreen())),
-              tooltip: 'ZeroDAO',
+              tooltip: isZh ? '零DAO' : 'ZeroDAO',
             ),
           ),
           Padding(
@@ -2087,7 +2097,7 @@ class _WalletScreenState extends State<WalletScreen> with TickerProviderStateMix
             child: IconButton(
               icon: Icon(Icons.swap_horiz_rounded, color: const Color(0xFF4FC3F7), size: 22),
               onPressed: () => Navigator.of(context).push(MaterialPageRoute(fullscreenDialog: true, builder: (_) => const ZeroBridgeScreen())),
-              tooltip: 'ZeroBridge',
+              tooltip: isZh ? '零桥' : 'ZeroBridge',
             ),
           ),
           Padding(
@@ -2095,7 +2105,7 @@ class _WalletScreenState extends State<WalletScreen> with TickerProviderStateMix
             child: IconButton(
               icon: Icon(Icons.receipt_long_rounded, color: const Color(0xFF26A69A), size: 22),
               onPressed: () => Navigator.of(context).push(MaterialPageRoute(fullscreenDialog: true, builder: (_) => const TransactionHistoryScreen())),
-              tooltip: 'Transactions',
+              tooltip: isZh ? '交易记录' : 'Transactions',
             ),
           ),
           Padding(

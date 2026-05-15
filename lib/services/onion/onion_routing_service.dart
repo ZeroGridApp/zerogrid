@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:pointycastle/export.dart';
@@ -131,13 +130,11 @@ class RoutingTraceStep {
 
 class OnionRoutingService {
   factory OnionRoutingService() => _instance;
-  OnionRoutingService._internal() {
-    _seedNodes();
-  }
+  OnionRoutingService._internal();
   static final OnionRoutingService _instance = OnionRoutingService._internal();
 
   final _crypto = ZeroCrypto();
-  final _random = Random.secure();
+  
 
   final Map<String, OnionNode> _nodes = {};
   final List<OnionCircuit> _circuits = [];
@@ -155,40 +152,7 @@ class OnionRoutingService {
   int get circuitCount => _circuits.length;
   int get activeCircuitCount => activeCircuits.length;
 
-  void _seedNodes() {
-    final domain = ECCurve_secp256r1();
-    final seedNodes = [
-      _NodeSeed('ZN-ALPHA-7F', 'Alpha', 'Singapore'),
-      _NodeSeed('ZN-BETA-3K', 'Beta', 'Tokyo'),
-      _NodeSeed('ZN-GAMMA-9M', 'Gamma', 'Frankfurt'),
-      _NodeSeed('ZN-DELTA-2P', 'Delta', 'San Francisco'),
-      _NodeSeed('ZN-EPSILON-5R', 'Epsilon', 'London'),
-      _NodeSeed('ZN-ZETA-8W', 'Zeta', 'Sydney'),
-      _NodeSeed('ZN-ETA-1X', 'Eta', 'Seoul'),
-      _NodeSeed('ZN-THETA-4N', 'Theta', 'Mumbai'),
-      _NodeSeed('ZN-IOTA-6V', 'Iota', 'Amsterdam'),
-      _NodeSeed('ZN-KAPPA-0U', 'Kappa', 'Toronto'),
-    ];
-
-    for (final seed in seedNodes) {
-      final d = _bytesToBigInt(_crypto.randomBytes(32)) % domain.n!;
-      final privKey = ECPrivateKey(d, domain);
-      final Q = domain.G! * d;
-      final pubKey = ECPublicKey(Q!, domain);
-      final pubHex = _pointToHex(Q);
-
-      _nodes[seed.id] = OnionNode(
-        id: seed.id,
-        name: seed.name,
-        region: seed.region,
-        privateKey: privKey,
-        publicKey: pubKey,
-        publicKeyHex: pubHex,
-        latencyMs: 15 + _random.nextInt(85),
-        uptime: 0.95 + _random.nextDouble() * 0.05,
-      );
-    }
-  }
+  
 
   OnionNode addCustomNode(String name, String region) {
     final domain = ECCurve_secp256r1();
@@ -519,9 +483,3 @@ class OnionRoutingService {
   }
 }
 
-class _NodeSeed {
-  final String id;
-  final String name;
-  final String region;
-  const _NodeSeed(this.id, this.name, this.region);
-}

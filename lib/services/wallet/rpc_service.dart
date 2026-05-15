@@ -25,15 +25,11 @@ class TxHistoryItem {
 class ChainConfig {
   final String chainId;
   final String symbol;
-  final double mockBalance;
-  final double mockUsdPrice;
   final int decimals;
 
   const ChainConfig({
     required this.chainId,
     required this.symbol,
-    required this.mockBalance,
-    required this.mockUsdPrice,
     required this.decimals,
   });
 }
@@ -47,58 +43,16 @@ class RpcService {
   final _recentTxCache = <String, List<TxHistoryItem>>{};
 
   static const _chains = {
-    'eth': ChainConfig(
-      chainId: 'eth',
-      symbol: 'ETH',
-      mockBalance: 1.5,
-      mockUsdPrice: 4200,
-      decimals: 18,
-    ),
-    'bsc': ChainConfig(
-      chainId: 'bsc',
-      symbol: 'BNB',
-      mockBalance: 320,
-      mockUsdPrice: 630,
-      decimals: 18,
-    ),
-    'btc': ChainConfig(
-      chainId: 'btc',
-      symbol: 'BTC',
-      mockBalance: 0.05,
-      mockUsdPrice: 68000,
-      decimals: 8,
-    ),
-    'trx': ChainConfig(
-      chainId: 'trx',
-      symbol: 'TRX',
-      mockBalance: 15000,
-      mockUsdPrice: 0.12,
-      decimals: 6,
-    ),
-    'sol': ChainConfig(
-      chainId: 'sol',
-      symbol: 'SOL',
-      mockBalance: 45,
-      mockUsdPrice: 180,
-      decimals: 9,
-    ),
+    'eth': ChainConfig(chainId: 'eth', symbol: 'ETH', decimals: 18),
+    'bsc': ChainConfig(chainId: 'bsc', symbol: 'BNB', decimals: 18),
+    'btc': ChainConfig(chainId: 'btc', symbol: 'BTC', decimals: 8),
+    'trx': ChainConfig(chainId: 'trx', symbol: 'TRX', decimals: 6),
+    'sol': ChainConfig(chainId: 'sol', symbol: 'SOL', decimals: 9),
   };
 
   static const _stableCoins = {
-    'usdt': ChainConfig(
-      chainId: 'usdt',
-      symbol: 'USDT',
-      mockBalance: 2000,
-      mockUsdPrice: 1.0,
-      decimals: 6,
-    ),
-    'usdc': ChainConfig(
-      chainId: 'usdc',
-      symbol: 'USDC',
-      mockBalance: 5000,
-      mockUsdPrice: 1.0,
-      decimals: 6,
-    ),
+    'usdt': ChainConfig(chainId: 'usdt', symbol: 'USDT', decimals: 6),
+    'usdc': ChainConfig(chainId: 'usdc', symbol: 'USDC', decimals: 6),
   };
 
   ChainConfig? getChainConfig(String chainId) => _chains[chainId.toLowerCase()];
@@ -107,56 +61,43 @@ class RpcService {
     await _simulateNetworkDelay();
 
     final normalized = chainId.toLowerCase();
-    final chain = _chains[normalized];
-    if (chain == null) {
+    if (!_chains.containsKey(normalized)) {
       throw RpcException('Unsupported chain: $chainId');
     }
 
-    final variation = 0.85 + (_random.nextDouble() * 0.3);
-    return (chain.mockBalance * variation * 1e18).roundToDouble() / 1e18;
+    return 0.0;
   }
 
   Future<double> getTokenBalance(String chainId, String token, String address) async {
     await _simulateNetworkDelay();
 
-    final tokenConfig = _stableCoins[token.toLowerCase()];
-    if (tokenConfig == null) {
+    if (!_stableCoins.containsKey(token.toLowerCase())) {
       throw RpcException('Unsupported token: $token');
     }
 
-    final variation = 0.85 + (_random.nextDouble() * 0.3);
-    return (tokenConfig.mockBalance * variation * 1e6).roundToDouble() / 1e6;
+    return 0.0;
   }
 
   Future<double> getUsdPrice(String chainId) async {
     await _simulateNetworkDelay();
 
     final normalized = chainId.toLowerCase();
-    final chain = _chains[normalized];
-    if (chain == null) {
+    if (!_chains.containsKey(normalized)) {
       throw RpcException('Unsupported chain: $chainId');
     }
 
-    final variation = 0.98 + (_random.nextDouble() * 0.04);
-    return (chain.mockUsdPrice * variation * 100).roundToDouble() / 100;
+    return 0.0;
   }
 
   Future<List<TxHistoryItem>> getTransactions(String chainId, String address) async {
     await _simulateNetworkDelay();
 
     final normalized = chainId.toLowerCase();
-    final chain = _chains[normalized];
-    if (chain == null) {
+    if (!_chains.containsKey(normalized)) {
       throw RpcException('Unsupported chain: $chainId');
     }
 
-    if (_recentTxCache.containsKey(normalized)) {
-      return _recentTxCache[normalized]!;
-    }
-
-    final txs = _generateTransactionHistory(chain, address);
-    _recentTxCache[normalized] = txs;
-    return txs;
+    return [];
   }
 
   Future<String> broadcastTransaction(String chainId, String signedTx) async {

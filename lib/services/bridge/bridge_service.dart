@@ -74,7 +74,6 @@ class ZeroBridgeService {
   final List<BridgeChain> _chains = [];
   final List<BridgeAsset> _assets = [];
   final List<BridgeTransaction> _transactions = [];
-  bool _seeded = false;
 
   List<BridgeChain> getSupportedChains() {
     return List.unmodifiable(_chains);
@@ -159,100 +158,5 @@ class ZeroBridgeService {
     return String.fromCharCodes(
       Iterable.generate(length, (_) => chars.codeUnitAt(_random.nextInt(chars.length))),
     );
-  }
-
-  void seedBridgeData() {
-    if (_seeded) return;
-    _seeded = true;
-
-    const ethColor = Color(0xFF627EEA);
-    const bscColor = Color(0xFFF0B90B);
-    const solColor = Color(0xFF9945FF);
-    const trxColor = Color(0xFFFF0013);
-    const zeroColor = Color(0xFF6BAF7B);
-
-    _chains.addAll([
-      const BridgeChain(id: 'eth', name: 'Ethereum', symbol: 'ETH', icon: '🔷', color: ethColor),
-      const BridgeChain(id: 'bsc', name: 'BNB Chain', symbol: 'BSC', icon: '🟡', color: bscColor),
-      const BridgeChain(id: 'sol', name: 'Solana', symbol: 'SOL', icon: '🟣', color: solColor),
-      const BridgeChain(id: 'trx', name: 'TRON', symbol: 'TRX', icon: '🔴', color: trxColor),
-      const BridgeChain(id: 'zero', name: 'ZeroChain', symbol: 'ZERO', icon: '⚪', color: zeroColor, isZeroChain: true),
-    ]);
-
-    _assets.addAll([
-      const BridgeAsset(id: 'eth_eth', symbol: 'ETH', name: 'Ethereum', icon: '🔷', balance: 1.25, usdValue: 3200, chainId: 'eth'),
-      const BridgeAsset(id: 'eth_usdt', symbol: 'USDT', name: 'Tether USD', icon: '💵', balance: 5000, usdValue: 1, chainId: 'eth'),
-      const BridgeAsset(id: 'bsc_bnb', symbol: 'BNB', name: 'BNB', icon: '🟡', balance: 2.5, usdValue: 320, chainId: 'bsc'),
-      const BridgeAsset(id: 'bsc_busd', symbol: 'BUSD', name: 'Binance USD', icon: '💵', balance: 2000, usdValue: 1, chainId: 'bsc'),
-      const BridgeAsset(id: 'sol_sol', symbol: 'SOL', name: 'Solana', icon: '🟣', balance: 2.0, usdValue: 200, chainId: 'sol'),
-      const BridgeAsset(id: 'sol_usdc', symbol: 'USDC', name: 'USD Coin', icon: '💵', balance: 1500, usdValue: 1, chainId: 'sol'),
-      const BridgeAsset(id: 'trx_trx', symbol: 'TRX', name: 'TRON', icon: '🔴', balance: 1000, usdValue: 0.2, chainId: 'trx'),
-      const BridgeAsset(id: 'trx_usdt', symbol: 'USDT', name: 'Tether USD', icon: '💵', balance: 1000, usdValue: 1, chainId: 'trx'),
-      const BridgeAsset(id: 'zero_zero', symbol: 'ZERO', name: 'Zero Token', icon: '⚪', balance: 10000, usdValue: 0.5, chainId: 'zero'),
-    ]);
-
-    final now = DateTime.now();
-    _transactions.addAll([
-      BridgeTransaction(
-        id: 'bridge_demo_1',
-        type: 'lock',
-        fromChain: 'ETH',
-        toChain: 'BSC',
-        asset: 'USDT',
-        amount: 500,
-        status: 'completed',
-        txHash: '0x${_randomHex(64)}',
-        timestamp: now.subtract(const Duration(hours: 2)),
-        fee: 1.50,
-      ),
-      BridgeTransaction(
-        id: 'bridge_demo_2',
-        type: 'burn',
-        fromChain: 'ZERO',
-        toChain: 'ETH',
-        asset: 'ZERO',
-        amount: 2000,
-        status: 'completed',
-        txHash: '0x${_randomHex(64)}',
-        timestamp: now.subtract(const Duration(hours: 5)),
-        fee: 2.00,
-      ),
-      BridgeTransaction(
-        id: 'bridge_demo_3',
-        type: 'lock',
-        fromChain: 'SOL',
-        toChain: 'ZERO',
-        asset: 'USDC',
-        amount: 300,
-        status: 'confirming',
-        txHash: '0x${_randomHex(64)}',
-        timestamp: now.subtract(const Duration(minutes: 15)),
-        fee: 0.90,
-      ),
-      BridgeTransaction(
-        id: 'bridge_demo_4',
-        type: 'lock',
-        fromChain: 'ETH',
-        toChain: 'TRX',
-        asset: 'ETH',
-        amount: 0.5,
-        status: 'completed',
-        txHash: '0x${_randomHex(64)}',
-        timestamp: now.subtract(const Duration(days: 1)),
-        fee: 4.80,
-      ),
-      BridgeTransaction(
-        id: 'bridge_demo_5',
-        type: 'burn',
-        fromChain: 'ZERO',
-        toChain: 'SOL',
-        asset: 'ZERO',
-        amount: 5000,
-        status: 'pending',
-        txHash: '0x${_randomHex(64)}',
-        timestamp: now.subtract(const Duration(minutes: 2)),
-        fee: 5.00,
-      ),
-    ]);
   }
 }

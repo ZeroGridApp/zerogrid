@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import '../../app.dart';
 import '../../core/theme/colors.dart';
@@ -33,9 +34,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String _bio = 'Building the decentralized future\u2026\none message at a time. \u{1f510}';
   String _location = 'San Francisco, CA';
   String _website = 'zero.me/alex';
-  int _followers = 567;
-  int _following = 1234;
-  int _posts = 42;
+  int _followers = 0;
+int _following = 0;
+int _posts = 0;
+  String _zeroId = '';
+  String _did = '';
 
   bool _pushNotificationsEnabled = true;
   bool _messagePreviewEnabled = true;
@@ -52,11 +55,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
   ];
 
   static const _statusList = [
-    _StatusInfo('Online', _StatusColorKind.green),
-    _StatusInfo('Away', _StatusColorKind.yellow),
-    _StatusInfo('Busy', _StatusColorKind.red),
-    _StatusInfo('Offline', _StatusColorKind.gray),
+    _StatusInfo(_StatusColorKind.green),
+    _StatusInfo(_StatusColorKind.yellow),
+    _StatusInfo(_StatusColorKind.red),
+    _StatusInfo(_StatusColorKind.gray),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    final r = Random();
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    _zeroId = List.generate(8, (_) => chars[r.nextInt(chars.length)]).join();
+    _did = 'did:zero:Z${List.generate(8, (_) => r.nextInt(16).toRadixString(16)).join()}';
+  }
 
   Color _resolveAvatarColor(BuildContext context, _AvatarColorKind kind) {
     switch (kind) {
@@ -90,6 +102,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  String _statusLabel(_StatusColorKind kind, bool isZh) {
+    switch (kind) {
+      case _StatusColorKind.yellow:
+        return isZh ? '\u79bb\u5f00' : 'Away';
+      case _StatusColorKind.red:
+        return isZh ? '\u5fd9\u788c' : 'Busy';
+      case _StatusColorKind.gray:
+        return isZh ? '\u79bb\u7ebf' : 'Offline';
+      case _StatusColorKind.green:
+      default:
+        return isZh ? '\u5728\u7ebf' : 'Online';
+    }
+  }
+
   String _disappearingLabel(int seconds) {
     final l10n = AppLocalizations.of(context);
     switch (seconds) {
@@ -111,19 +137,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _showBioEditDialog() {
+    final isZh = ZeroTheme.isZh(context);
     final controller = TextEditingController(text: _bio);
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: context.zSurface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text('Edit Bio', style: ZeroTypography.title(context).copyWith(color: context.zTextPrimary)),
+        title: Text(isZh ? '\u7f16\u8f91\u7b80\u4ecb' : 'Edit Bio', style: ZeroTypography.title(context).copyWith(color: context.zTextPrimary)),
         content: TextField(
           controller: controller,
           maxLines: 4,
           style: ZeroTypography.body(context).copyWith(color: context.zTextPrimary),
           decoration: InputDecoration(
-            hintText: 'Tell the world about yourself...',
+            hintText: isZh ? '\u5411\u5927\u5bb6\u4ecb\u7ecd\u4e00\u4e0b\u81ea\u5df1...' : 'Tell the world about yourself...',
             hintStyle: ZeroTypography.body(context).copyWith(color: context.zTextTertiary),
             filled: true,
             fillColor: context.zBg,
@@ -153,18 +180,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _showLocationEditDialog() {
+    final isZh = ZeroTheme.isZh(context);
     final controller = TextEditingController(text: _location);
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: context.zSurface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text('Edit Location', style: ZeroTypography.title(context).copyWith(color: context.zTextPrimary)),
+        title: Text(isZh ? '\u7f16\u8f91\u5730\u5740' : 'Edit Location', style: ZeroTypography.title(context).copyWith(color: context.zTextPrimary)),
         content: TextField(
           controller: controller,
           style: ZeroTypography.body(context).copyWith(color: context.zTextPrimary),
           decoration: InputDecoration(
-            hintText: 'Your location',
+            hintText: isZh ? '\u4f60\u7684\u4f4d\u7f6e' : 'Your location',
             hintStyle: ZeroTypography.body(context).copyWith(color: context.zTextTertiary),
             filled: true,
             fillColor: context.zBg,
@@ -194,18 +222,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _showWebsiteEditDialog() {
+    final isZh = ZeroTheme.isZh(context);
     final controller = TextEditingController(text: _website);
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: context.zSurface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text('Edit Website', style: ZeroTypography.title(context).copyWith(color: context.zTextPrimary)),
+        title: Text(isZh ? '\u7f16\u8f91\u7f51\u7ad9' : 'Edit Website', style: ZeroTypography.title(context).copyWith(color: context.zTextPrimary)),
         content: TextField(
           controller: controller,
           style: ZeroTypography.body(context).copyWith(color: context.zTextPrimary),
           decoration: InputDecoration(
-            hintText: 'Your website link',
+            hintText: isZh ? '\u4f60\u7684\u7f51\u7ad9\u94fe\u63a5' : 'Your website link',
             hintStyle: ZeroTypography.body(context).copyWith(color: context.zTextTertiary),
             filled: true,
             fillColor: context.zBg,
@@ -235,11 +264,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _showShareProfileSheet() {
+    final isZh = ZeroTheme.isZh(context);
     final app = ZeroApp.of(context);
     if (app == null) return;
     final l10n = AppLocalizations.of(context);
-    final zeroId = 'Z8P2K5W1RT';
-    final did = 'did:zero:ZA1B2C3D4E';
+    final zeroId = _zeroId;
+    final did = _did;
 
     showModalBottomSheet(
       context: context,
@@ -258,7 +288,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   decoration: BoxDecoration(color: context.zDivider, borderRadius: BorderRadius.circular(2)),
                 ),
                 const SizedBox(height: ZeroSpacing.lg),
-                Text('Share Profile', style: ZeroTypography.title(context)),
+                Text(isZh ? '\u5206\u4eab\u4e3b\u9875' : 'Share Profile', style: ZeroTypography.title(context)),
                 const SizedBox(height: ZeroSpacing.lg),
                 Container(
                   width: 180,
@@ -303,13 +333,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       Expanded(
                         child: _ShareActionChip(
                           icon: Icons.copy_outlined,
-                          label: 'Copy ZeroID',
+                          label: isZh ? '\u590d\u5236 ZeroID' : 'Copy ZeroID',
                           onTap: () {
                             Navigator.pop(ctx);
                             ScaffoldMessenger.of(this.context).showSnackBar(
                               SnackBar(
                                 content: Text(
-                                  '$zeroId copied',
+                                  isZh ? '$zeroId \u5df2\u590d\u5236' : '$zeroId copied',
                                   style: ZeroTypography.body(this.context).copyWith(color: context.zBg),
                                 ),
                                 backgroundColor: context.zSuccess,
@@ -325,13 +355,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       Expanded(
                         child: _ShareActionChip(
                           icon: Icons.fingerprint,
-                          label: 'Copy DID',
+                          label: isZh ? '\u590d\u5236 DID' : 'Copy DID',
                           onTap: () {
                             Navigator.pop(ctx);
                             ScaffoldMessenger.of(this.context).showSnackBar(
                               SnackBar(
                                 content: Text(
-                                  'DID copied',
+                                  isZh ? 'DID \u5df2\u590d\u5236' : 'DID copied',
                                   style: ZeroTypography.body(this.context).copyWith(color: context.zBg),
                                 ),
                                 backgroundColor: context.zSuccess,
@@ -353,13 +383,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     width: double.infinity,
                     child: _ShareActionChip(
                       icon: Icons.chat_bubble_outline,
-                      label: 'Share via ZeroChat',
+                      label: isZh ? '\u901a\u8fc7 ZeroChat \u5206\u4eab' : 'Share via ZeroChat',
                       onTap: () {
                         Navigator.pop(ctx);
                         ScaffoldMessenger.of(this.context).showSnackBar(
                           SnackBar(
                             content: Text(
-                              'Profile shared to ZeroChat',
+                              isZh ? '\u4e3b\u9875\u5df2\u5206\u4eab' : 'Profile shared to ZeroChat',
                               style: ZeroTypography.body(this.context).copyWith(color: context.zBg),
                             ),
                             backgroundColor: context.zSuccess,
@@ -382,6 +412,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _showStatsModal() {
+    final isZh = ZeroTheme.isZh(context);
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -391,7 +422,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           children: [
             Icon(Icons.people_outline, color: context.zAccent, size: 22),
             const SizedBox(width: ZeroSpacing.sm),
-            Text('Social Graph', style: ZeroTypography.title(context).copyWith(color: context.zTextPrimary)),
+            Text(isZh ? '\u793e\u4ea4\u56fe\u8c31' : 'Social Graph', style: ZeroTypography.title(context).copyWith(color: context.zTextPrimary)),
           ],
         ),
         content: Column(
@@ -408,12 +439,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             const SizedBox(height: ZeroSpacing.md),
             Text(
-              'Coming soon: Social graph',
+              isZh ? '\u5373\u5c06\u63a8\u51fa\uff1a\u793e\u4ea4\u56fe\u8c31' : 'Coming soon: Social graph',
               style: ZeroTypography.body(context).copyWith(color: context.zTextSecondary),
             ),
             const SizedBox(height: ZeroSpacing.xs),
             Text(
-              'View and explore your decentralized social connections in the Zero network.',
+              isZh ? '\u67e5\u770b\u548c\u63a2\u7d22\u4f60\u5728 Zero \u7f51\u7edc\u4e2d\u7684\u53bb\u4e2d\u5fc3\u5316\u793e\u4ea4\u8fde\u63a5\u3002' : 'View and explore your decentralized social connections in the Zero network.',
               style: ZeroTypography.caption(context),
               textAlign: TextAlign.center,
             ),
@@ -430,6 +461,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _showEditNameDialog() {
+    final isZh = ZeroTheme.isZh(context);
     final app = ZeroApp.of(context);
     if (app == null) return;
     final controller = TextEditingController(text: app.displayName);
@@ -438,12 +470,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
       builder: (ctx) => AlertDialog(
         backgroundColor: context.zSurface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text('Edit Display Name', style: ZeroTypography.title(context).copyWith(color: context.zTextPrimary)),
+        title: Text(isZh ? '\u7f16\u8f91\u6635\u79f0' : 'Edit Display Name', style: ZeroTypography.title(context).copyWith(color: context.zTextPrimary)),
         content: TextField(
           controller: controller,
           style: ZeroTypography.body(context).copyWith(color: context.zTextPrimary),
           decoration: InputDecoration(
-            hintText: 'Enter display name',
+            hintText: isZh ? '\u8f93\u5165\u6635\u79f0' : 'Enter display name',
             hintStyle: ZeroTypography.body(context).copyWith(color: context.zTextTertiary),
             filled: true,
             fillColor: context.zBg,
@@ -473,6 +505,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _showLockConfirm() {
+    final isZh = ZeroTheme.isZh(context);
     final l10n = AppLocalizations.of(context);
     final app = ZeroApp.of(context);
     showDialog(
@@ -488,7 +521,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ],
         ),
         content: Text(
-          'Your encrypted session will be locked. You\'ll need to verify your identity to return.',
+          isZh ? '\u4f60\u7684\u52a0\u5bc6\u4f1a\u8bdd\u5c06\u88ab\u9501\u5b9a\uff0c\u4f60\u9700\u8981\u9a8c\u8bc1\u8eab\u4efd\u624d\u80fd\u8fd4\u56de\u3002' : 'Your encrypted session will be locked. You\'ll need to verify your identity to return.',
           style: ZeroTypography.body(context).copyWith(color: context.zTextSecondary),
         ),
         actions: [
@@ -730,11 +763,161 @@ class _ProfileScreenState extends State<ProfileScreen> {
           TextButton(
             onPressed: () => Navigator.pop(ctx),
             child: Text(
-              isZh ? '我知道了' : 'I Understand',
+              isZh ? '取消' : 'Cancel',
+              style: TextStyle(color: context.zTextTertiary),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              _showRecoveryPhrase();
+            },
+            child: Text(
+              isZh ? '我知道了，显示助记词' : 'I Understand, Show Phrase',
               style: TextStyle(color: context.zAccent),
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  void _showRecoveryPhrase() {
+    final isZh = ZeroTheme.isZh(context);
+    const words = [
+      'abandon', 'ability', 'able', 'about', 'above', 'absent', 'absorb', 'abstract',
+      'absurd', 'abuse', 'access', 'accident', 'account', 'accuse', 'achieve', 'acid',
+      'acoustic', 'acquire', 'across', 'act', 'action', 'actor', 'actress', 'actual',
+    ];
+    final r = Random();
+    final selected = List.generate(12, (_) => words[r.nextInt(words.length)]);
+    
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: context.zSurface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(
+          isZh ? '你的恢复助记词' : 'Your Recovery Phrase',
+          style: ZeroTypography.title(context).copyWith(color: context.zTextPrimary),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(ZeroSpacing.lg),
+              decoration: BoxDecoration(
+                color: context.zWarning.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: context.zWarning.withOpacity(0.2), width: 0.5),
+              ),
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: List.generate(12, (i) {
+                  return Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: context.zSurface,
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(color: context.zDivider, width: 0.5),
+                    ),
+                    child: Text(
+                      '${i + 1}. ${selected[i]}',
+                      style: ZeroTypography.monoSmall(context).copyWith(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  );
+                }),
+              ),
+            ),
+            const SizedBox(height: ZeroSpacing.md),
+            Text(
+              isZh ? '请离线保存，不要截图或复制' : 'Store offline. Do not screenshot or copy.',
+              style: ZeroTypography.caption(context).copyWith(color: context.zWarning),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(
+              isZh ? '我已备份' : 'I Have Backed Up',
+              style: TextStyle(color: context.zAccent, fontWeight: FontWeight.w600),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showAvatarPicker() {
+    final isZh = ZeroTheme.isZh(context);
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: context.zSurface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => Padding(
+        padding: const EdgeInsets.all(ZeroSpacing.lg),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 36,
+              height: 4,
+              decoration: BoxDecoration(
+                color: context.zTextTertiary.withOpacity(0.3),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: ZeroSpacing.lg),
+            Text(
+              isZh ? '选择头像颜色' : 'Choose Avatar Color',
+              style: ZeroTypography.title(context),
+            ),
+            const SizedBox(height: ZeroSpacing.lg),
+            Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: List.generate(_avatarColors.length, (i) {
+                final color = _resolveAvatarColor(ctx, _avatarColors[i]);
+                return GestureDetector(
+                  onTap: () {
+                    setState(() => _avatarColorIndex = i);
+                    Navigator.pop(ctx);
+                  },
+                  child: Container(
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: LinearGradient(
+                        colors: [color, color.withOpacity(0.6)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      boxShadow: i == _avatarColorIndex
+                          ? [BoxShadow(color: color.withOpacity(0.5), blurRadius: 12, offset: const Offset(0, 4))]
+                          : null,
+                      border: i == _avatarColorIndex
+                          ? Border.all(color: color, width: 2.5)
+                          : null,
+                    ),
+                    child: i == _avatarColorIndex
+                        ? const Icon(Icons.check, color: Colors.white, size: 24)
+                        : null,
+                  ),
+                );
+              }),
+            ),
+            const SizedBox(height: ZeroSpacing.xl),
+          ],
+        ),
       ),
     );
   }
@@ -884,13 +1067,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: Column(
           children: [
             const SizedBox(height: ZeroSpacing.xl),
-            _buildProfileHeader(context, app, l10n, avatarColor, status, statusColor),
+            _buildProfileHeader(context, app, l10n, avatarColor, status, statusColor, isZh),
             const SizedBox(height: ZeroSpacing.lg),
-            _buildBioSection(context, l10n),
+            _buildBioSection(context, l10n, isZh),
             const SizedBox(height: ZeroSpacing.lg),
-            _buildStatsRow(context, l10n),
+            _buildStatsRow(context, l10n, isZh),
             const SizedBox(height: ZeroSpacing.lg),
-            _buildActionButtons(context, l10n),
+            _buildActionButtons(context, l10n, isZh),
             const SizedBox(height: ZeroSpacing.lg),
             _buildSettingSection(
               context,
@@ -974,7 +1157,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     activeColor: currentTheme.previewAccent,
                   ),
                 ),
-                _SettingItem(icon: Icons.vpn_lock_outlined, label: l10n.natStatus, value: 'Private'),
+                _SettingItem(icon: Icons.vpn_lock_outlined, label: l10n.natStatus, value: isZh ? '\u79c1\u5bc6' : 'Private'),
                 _SettingItem(
                   icon: Icons.key_outlined,
                   label: isZh ? '显示恢复助记词' : 'Show Recovery Phrase',
@@ -986,7 +1169,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   label: isZh ? '指纹 / 面容' : 'Fingerprint / Face ID',
                   value: isZh ? '不可用' : 'Not available',
                 ),
-                _SettingItem(icon: Icons.enhanced_encryption, label: l10n.encryption, value: 'Double Ratchet'),
+                _SettingItem(icon: Icons.enhanced_encryption, label: l10n.encryption, value: isZh ? '\u53cc\u68d8\u8f6e' : 'Double Ratchet'),
                 _SettingItem(
                   icon: Icons.timer_outlined,
                   label: l10n.disappearingMessages,
@@ -1110,9 +1293,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
               l10n,
               title: l10n.about,
               items: [
-                _SettingItem(icon: Icons.info_outline, label: l10n.version, value: '0.1.0 (Pre-Alpha)'),
+                _SettingItem(icon: Icons.info_outline, label: l10n.version, value: isZh ? '0.1.0 (\u9884\u53d1\u5e03)' : '0.1.0 (Pre-Alpha)'),
                 _SettingItem(icon: Icons.code_outlined, label: l10n.protocol, value: '/zero/1.0.0'),
-                _SettingItem(icon: Icons.hub_outlined, label: l10n.networkPeers, value: '12 connected'),
+                _SettingItem(icon: Icons.hub_outlined, label: l10n.networkPeers, value: isZh ? '0 \u5df2\u8fde\u63a5' : '0 connected'),
                 _SettingItem(
                   icon: Icons.article_outlined,
                   label: isZh ? '开源许可' : 'Open Source Licenses',
@@ -1200,6 +1383,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     Color avatarColor,
     _StatusInfo status,
     Color statusColor,
+    bool isZh,
   ) {
     final displayName = app.displayName;
     final initials = displayName.isNotEmpty ? displayName[0].toUpperCase() : 'Z';
@@ -1294,7 +1478,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
         const SizedBox(height: ZeroSpacing.xs),
         Text(
-          '@Z8P2K5W1RT',
+          '@$_zeroId',
           style: TextStyle(
             fontFamily: 'JetBrainsMono',
             fontSize: 14,
@@ -1333,7 +1517,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     const SizedBox(width: ZeroSpacing.sm),
                     Text(
-                      status.label,
+                      _statusLabel(status.colorKind, isZh),
                       style: TextStyle(
                         fontFamily: 'Inter',
                         fontSize: 13,
@@ -1355,7 +1539,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   border: Border.all(color: context.zFrostWhiteStrong, width: 0.5),
                 ),
                 child: Text(
-                  'Edit Profile',
+                  isZh ? '\u7f16\u8f91\u8d44\u6599' : 'Edit Profile',
                   style: TextStyle(
                     fontFamily: 'Inter',
                     fontSize: 13,
@@ -1371,7 +1555,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildBioSection(BuildContext context, AppLocalizations l10n) {
+  Widget _buildBioSection(BuildContext context, AppLocalizations l10n, bool isZh) {
     return ZeroCard(
       padding: EdgeInsets.all(ZeroSpacing.lg),
       child: Column(
@@ -1386,7 +1570,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           const SizedBox(height: ZeroSpacing.sm),
           _buildInfoRow(context, Icons.link, _website, _showWebsiteEditDialog),
           const SizedBox(height: ZeroSpacing.sm),
-          _buildInfoRow(context, Icons.calendar_today_outlined, 'Joined May 2024', null),
+          _buildInfoRow(context, Icons.calendar_today_outlined, isZh ? '\u52a0\u5165\u4e8e 2024\u5e745\u6708' : 'Joined May 2024', null),
         ],
       ),
     );
@@ -1412,26 +1596,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildStatsRow(BuildContext context, AppLocalizations l10n) {
+  Widget _buildStatsRow(BuildContext context, AppLocalizations l10n, bool isZh) {
     return GestureDetector(
       onTap: _showStatsModal,
       child: ZeroCard(
         padding: EdgeInsets.symmetric(vertical: ZeroSpacing.lg),
         child: Row(
           children: [
-            _buildStatColumn(context, _formatCount(_following), 'Following'),
+            _buildStatColumn(context, _formatCount(_following), isZh ? '\u5173\u6ce8' : 'Following'),
             Container(
               width: 0.5,
               height: 32,
               color: context.zDivider,
             ),
-            _buildStatColumn(context, _formatCount(_followers), 'Followers'),
+            _buildStatColumn(context, _formatCount(_followers), isZh ? '\u7c89\u4e1d' : 'Followers'),
             Container(
               width: 0.5,
               height: 32,
               color: context.zDivider,
             ),
-            _buildStatColumn(context, _formatCount(_posts), 'Posts'),
+            _buildStatColumn(context, _formatCount(_posts), isZh ? '\u52a8\u6001' : 'Posts'),
           ],
         ),
       ),
@@ -1471,30 +1655,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   String _oauthConnectedCount(bool isZh) {
     final service = ZeroOAuthService();
-    service.seedOAuthData();
     final count = service.getConnectedApps('did:zero:ZA1B2C3D4E').length;
     return isZh ? '$count 个应用已连接' : '$count apps connected';
   }
 
-  Widget _buildActionButtons(BuildContext context, AppLocalizations l10n) {
+  Widget _buildActionButtons(BuildContext context, AppLocalizations l10n, bool isZh) {
     return Row(
       children: [
         Expanded(
           child: _ActionChip(
             icon: Icons.photo_camera_outlined,
-            label: 'Edit Avatar',
-            onTap: () {
-              setState(() {
-                _avatarColorIndex = (_avatarColorIndex + 1) % _avatarColors.length;
-              });
-            },
+            label: isZh ? '\u66f4\u6362\u5934\u50cf' : 'Edit Avatar',
+            onTap: _showAvatarPicker,
           ),
         ),
         const SizedBox(width: ZeroSpacing.sm),
         Expanded(
           child: _ActionChip(
             icon: Icons.edit_note,
-            label: 'Edit Bio',
+            label: isZh ? '\u7f16\u8f91\u7b80\u4ecb' : 'Edit Bio',
             onTap: _showBioEditDialog,
           ),
         ),
@@ -1502,7 +1681,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         Expanded(
           child: _ActionChip(
             icon: Icons.share_outlined,
-            label: 'Share Profile',
+            label: isZh ? '\u5206\u4eab\u4e3b\u9875' : 'Share Profile',
             onTap: _showShareProfileSheet,
           ),
         ),
@@ -1585,9 +1764,8 @@ enum _AvatarColorKind { accent, celadon, success, warning, blue, purple }
 enum _StatusColorKind { green, yellow, red, gray }
 
 class _StatusInfo {
-  final String label;
   final _StatusColorKind colorKind;
-  const _StatusInfo(this.label, this.colorKind);
+  const _StatusInfo(this.colorKind);
 }
 
 class _SettingItem {

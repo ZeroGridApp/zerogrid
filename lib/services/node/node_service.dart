@@ -238,7 +238,6 @@ class ZeroNodeService {
   ZeroNodeService._();
 
   final _random = Random();
-  bool _seeded = false;
 
   NodeConfig _config = const NodeConfig(
     nodeType: 'relay',
@@ -250,9 +249,9 @@ class ZeroNodeService {
     stakeAmount: 1000,
   );
 
-  late NodeStatus _status;
+  NodeStatus? _status;
   List<PeerNode> _peers = [];
-  late NetworkStats _networkStats;
+  NetworkStats? _networkStats;
   bool _isNodeRunning = false;
 
   NodeConfig getConfig() {
@@ -263,18 +262,15 @@ class ZeroNodeService {
     _config = config;
   }
 
-  NodeStatus getStatus() {
-    _seedIfNeeded();
+  NodeStatus? getStatus() {
     return _status;
   }
 
-  NetworkStats getNetworkStats() {
-    _seedIfNeeded();
+  NetworkStats? getNetworkStats() {
     return _networkStats;
   }
 
   List<PeerNode> getPeerNodes() {
-    _seedIfNeeded();
     return List.unmodifiable(_peers);
   }
 
@@ -294,7 +290,7 @@ class ZeroNodeService {
       'full': 'Full',
     };
 
-    _status = NodeStatus(
+    final status = NodeStatus(
       nodeId: nodeId,
       name: '${typeNames[config.nodeType] ?? 'Node'}-${_random.nextInt(900) + 100}',
       nodeType: config.nodeType,
@@ -312,111 +308,77 @@ class ZeroNodeService {
       startedAt: now,
     );
 
+    _status = status;
     _peers = _generatePeers(config.region);
     _networkStats = _generateNetworkStats(config.region);
   }
 
   void startNode() {
+    if (_status == null) return;
     _isNodeRunning = true;
-    _seedIfNeeded();
 
     _status = NodeStatus(
-      nodeId: _status.nodeId,
-      name: _status.name,
-      nodeType: _status.nodeType,
+      nodeId: _status!.nodeId,
+      name: _status!.name,
+      nodeType: _status!.nodeType,
       status: 'online',
-      uptime: _status.uptime,
-      peersConnected: _status.peersConnected,
-      blocksSynced: _status.blocksSynced,
-      blocksTotal: _status.blocksTotal,
-      latency: _status.latency,
-      bandwidthUp: _status.bandwidthUp,
-      bandwidthDown: _status.bandwidthDown,
-      storageUsed: _status.storageUsed,
-      storageTotal: _status.storageTotal,
-      rewardsEarned: _status.rewardsEarned,
-      startedAt: _status.startedAt,
+      uptime: _status!.uptime,
+      peersConnected: _status!.peersConnected,
+      blocksSynced: _status!.blocksSynced,
+      blocksTotal: _status!.blocksTotal,
+      latency: _status!.latency,
+      bandwidthUp: _status!.bandwidthUp,
+      bandwidthDown: _status!.bandwidthDown,
+      storageUsed: _status!.storageUsed,
+      storageTotal: _status!.storageTotal,
+      rewardsEarned: _status!.rewardsEarned,
+      startedAt: _status!.startedAt,
     );
   }
 
   void stopNode() {
+    if (_status == null) return;
     _isNodeRunning = false;
 
     _status = NodeStatus(
-      nodeId: _status.nodeId,
-      name: _status.name,
-      nodeType: _status.nodeType,
+      nodeId: _status!.nodeId,
+      name: _status!.name,
+      nodeType: _status!.nodeType,
       status: 'offline',
-      uptime: _status.uptime,
+      uptime: _status!.uptime,
       peersConnected: 0,
-      blocksSynced: _status.blocksSynced,
-      blocksTotal: _status.blocksTotal,
+      blocksSynced: _status!.blocksSynced,
+      blocksTotal: _status!.blocksTotal,
       latency: 0,
       bandwidthUp: 0,
       bandwidthDown: 0,
-      storageUsed: _status.storageUsed,
-      storageTotal: _status.storageTotal,
-      rewardsEarned: _status.rewardsEarned,
-      startedAt: _status.startedAt,
+      storageUsed: _status!.storageUsed,
+      storageTotal: _status!.storageTotal,
+      rewardsEarned: _status!.rewardsEarned,
+      startedAt: _status!.startedAt,
     );
   }
 
   void restartNode() {
+    if (_status == null) return;
     _isNodeRunning = true;
 
     _status = NodeStatus(
-      nodeId: _status.nodeId,
-      name: _status.name,
-      nodeType: _status.nodeType,
+      nodeId: _status!.nodeId,
+      name: _status!.name,
+      nodeType: _status!.nodeType,
       status: 'online',
-      uptime: _status.uptime,
+      uptime: _status!.uptime,
       peersConnected: _random.nextInt(30) + 15,
-      blocksSynced: _status.blocksTotal,
-      blocksTotal: _status.blocksTotal,
+      blocksSynced: _status!.blocksTotal,
+      blocksTotal: _status!.blocksTotal,
       latency: _random.nextInt(20) + 12,
       bandwidthUp: (_random.nextDouble() * 15 + 8),
       bandwidthDown: (_random.nextDouble() * 30 + 15),
-      storageUsed: _status.storageUsed,
-      storageTotal: _status.storageTotal,
-      rewardsEarned: _status.rewardsEarned,
-      startedAt: _status.startedAt,
-    );
-  }
-
-  void seedDemoData() {
-    if (_seeded) return;
-    _seeded = true;
-
-    final now = DateTime.now();
-    _status = NodeStatus(
-      nodeId: 'ZN728491',
-      name: 'Relay-314',
-      nodeType: 'relay',
-      status: 'online',
-      uptime: 99.7,
-      peersConnected: 28,
-      blocksSynced: 8523147,
-      blocksTotal: 8523147,
-      latency: 18,
-      bandwidthUp: 12.4,
-      bandwidthDown: 28.7,
-      storageUsed: 12288,
-      storageTotal: 51200,
-      rewardsEarned: 342,
-      startedAt: now.subtract(const Duration(days: 47)),
-    );
-
-    _isNodeRunning = true;
-
-    _peers = _generatePeers('asia-east');
-
-    _networkStats = NetworkStats(
-      totalNodes: 1247,
-      onlineNodes: 1189,
-      averageLatency: 28.3,
-      totalBandwidth: 18420.5,
-      totalStorage: 2560000,
-      topPeers: _peers.take(5).toList(),
+      storageUsed: _status!.storageUsed,
+      storageTotal: _status!.storageTotal,
+      rewardsEarned: _status!.rewardsEarned,
+      startedAt: _status!.startedAt,
     );
   }
 
@@ -511,11 +473,5 @@ class ZeroNodeService {
       totalStorage: (_random.nextInt(1000000) + 2000000),
       topPeers: _peers.take(5).toList(),
     );
-  }
-
-  void _seedIfNeeded() {
-    if (!_seeded) {
-      seedDemoData();
-    }
   }
 }

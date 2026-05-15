@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 
@@ -63,9 +64,10 @@ class _LockScreenRoute extends StatelessWidget {
 
 class _LockScreenState extends State<LockScreen> with TickerProviderStateMixin {
   static const int _pinLength = 6;
-  static const String _correctPin = '000000';
   static const int _maxAttempts = 3;
   static const int _lockoutSeconds = 30;
+
+  late final String _correctPin;
 
   final List<String> _enteredDigits = [];
   int _failedAttempts = 0;
@@ -84,6 +86,8 @@ class _LockScreenState extends State<LockScreen> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
+    final rng = Random();
+    _correctPin = List.generate(_pinLength, (_) => rng.nextInt(10).toString()).join();
     _shakeController = AnimationController(
       duration: const Duration(milliseconds: 500),
       vsync: this,

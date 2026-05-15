@@ -1,8 +1,10 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../core/theme/colors.dart';
 import '../../core/theme/spacing.dart';
 import '../../core/theme/typography.dart';
+import '../../core/theme/zero_theme.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../../services/dns/zerodns_service.dart';
 import '../../widgets/zero_card.dart';
@@ -33,9 +35,8 @@ class ZeroDNSScreen extends StatefulWidget {
 class _ZeroDNSScreenState extends State<ZeroDNSScreen> {
   final _dns = ZeroDNSService();
   final _searchController = TextEditingController();
-  String _currentOwnerId = 'Z000000000';
+  late final String _currentOwnerId;
 
-  bool _seeded = false;
   bool _searching = false;
   bool? _available;
   int _searchPrice = 0;
@@ -45,21 +46,16 @@ class _ZeroDNSScreenState extends State<ZeroDNSScreen> {
   @override
   void initState() {
     super.initState();
-    _ensureSeeded();
+    final rng = Random();
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    _currentOwnerId = 'Z${List.generate(9, (_) => chars[rng.nextInt(chars.length)]).join()}';
+    _refreshDomains();
   }
 
   @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
-  }
-
-  void _ensureSeeded() {
-    if (!_seeded) {
-      _dns.seedDemoDomains();
-      _seeded = true;
-    }
-    _refreshDomains();
   }
 
   void _refreshDomains() {
@@ -92,6 +88,7 @@ class _ZeroDNSScreenState extends State<ZeroDNSScreen> {
   }
 
   void _onRegister(String name) {
+    final isZh = ZeroTheme.isZh(context);
     try {
       final domain = _dns.registerDomain(name, _currentOwnerId);
       setState(() {
@@ -103,7 +100,9 @@ class _ZeroDNSScreenState extends State<ZeroDNSScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            '${domain.name}.zero registered successfully!',
+            isZh
+                ? '${domain.name}.zero 注册成功！'
+                : '${domain.name}.zero registered successfully!',
             style: ZeroTypography.caption(context).copyWith(
               color: context.zTextPrimary,
             ),
@@ -145,6 +144,7 @@ class _ZeroDNSScreenState extends State<ZeroDNSScreen> {
   }
 
   void _showDomainMenu(ZeroDomain domain) {
+    final isZh = ZeroTheme.isZh(context);
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -178,7 +178,7 @@ class _ZeroDNSScreenState extends State<ZeroDNSScreen> {
             _menuItem(
               ctx,
               icon: Icons.swap_horiz,
-              label: 'Transfer',
+              label: isZh ? '转移' : 'Transfer',
               onTap: () {
                 Navigator.of(ctx).pop();
                 _showTransferDialog(domain);
@@ -187,14 +187,14 @@ class _ZeroDNSScreenState extends State<ZeroDNSScreen> {
             _menuItem(
               ctx,
               icon: Icons.copy,
-              label: 'Copy Name',
+              label: isZh ? '复制名称' : 'Copy Name',
               onTap: () {
                 Clipboard.setData(ClipboardData(text: '${domain.name}.zero'));
                 Navigator.of(ctx).pop();
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
-                      'Copied to clipboard',
+                      isZh ? '已复制到剪贴板' : 'Copied to clipboard',
                       style: ZeroTypography.caption(context).copyWith(
                         color: context.zTextPrimary,
                       ),
@@ -216,7 +216,7 @@ class _ZeroDNSScreenState extends State<ZeroDNSScreen> {
             _menuItem(
               ctx,
               icon: Icons.delete_outline,
-              label: 'Delete',
+              label: isZh ? '删除' : 'Delete',
               isDestructive: true,
               onTap: () {
                 Navigator.of(ctx).pop();
@@ -303,6 +303,7 @@ class _ZeroDNSScreenState extends State<ZeroDNSScreen> {
   }
 
   void _showTransferDialog(ZeroDomain domain) {
+    final isZh = ZeroTheme.isZh(context);
     final controller = TextEditingController();
     showModalBottomSheet(
       context: context,
@@ -336,14 +337,14 @@ class _ZeroDNSScreenState extends State<ZeroDNSScreen> {
               ),
               SizedBox(height: ZeroSpacing.lg),
               Text(
-                'Transfer ${domain.name}.zero',
+                isZh ? '转移 ${domain.name}.zero' : 'Transfer ${domain.name}.zero',
                 style: ZeroTypography.title(context).copyWith(
                   color: context.zAccent,
                 ),
               ),
               SizedBox(height: ZeroSpacing.xs),
               Text(
-                'Enter the ZeroID of the new owner',
+                isZh ? '输入新所有者的 ZeroID' : 'Enter the ZeroID of the new owner',
                 style: ZeroTypography.body(context),
               ),
               SizedBox(height: ZeroSpacing.lg),
@@ -388,7 +389,9 @@ class _ZeroDNSScreenState extends State<ZeroDNSScreen> {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(
-                            '${domain.name}.zero transferred to $newOwner',
+                            isZh
+                                ? '${domain.name}.zero 已转移至 $newOwner'
+                                : '${domain.name}.zero transferred to $newOwner',
                             style: ZeroTypography.caption(context).copyWith(
                               color: context.zTextPrimary,
                             ),
@@ -438,7 +441,7 @@ class _ZeroDNSScreenState extends State<ZeroDNSScreen> {
                     ),
                   ),
                   child: Text(
-                    'Transfer',
+                    isZh ? '转移' : 'Transfer',
                     style: TextStyle(
                       fontFamily: 'Inter',
                       fontSize: 14,
@@ -485,6 +488,7 @@ class _ZeroDNSScreenState extends State<ZeroDNSScreen> {
   }
 
   void _confirmDeleteDomain(ZeroDomain domain) {
+    final isZh = ZeroTheme.isZh(context);
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -515,14 +519,14 @@ class _ZeroDNSScreenState extends State<ZeroDNSScreen> {
             ),
             SizedBox(height: ZeroSpacing.md),
             Text(
-              'Delete ${domain.name}.zero?',
+              isZh ? '删除 ${domain.name}.zero？' : 'Delete ${domain.name}.zero?',
               style: ZeroTypography.headline(context).copyWith(
                 color: context.zError,
               ),
             ),
             SizedBox(height: ZeroSpacing.sm),
             Text(
-              'This action cannot be undone.',
+              isZh ? '此操作不可撤销。' : 'This action cannot be undone.',
               style: ZeroTypography.body(context),
             ),
             SizedBox(height: ZeroSpacing.lg),
@@ -536,7 +540,7 @@ class _ZeroDNSScreenState extends State<ZeroDNSScreen> {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(
-                        '${domain.name}.zero deleted',
+                        isZh ? '${domain.name}.zero 已删除' : '${domain.name}.zero deleted',
                         style: ZeroTypography.caption(context).copyWith(
                           color: context.zTextPrimary,
                         ),
@@ -564,7 +568,7 @@ class _ZeroDNSScreenState extends State<ZeroDNSScreen> {
                   ),
                 ),
                 child: Text(
-                  'Delete',
+                  isZh ? '删除' : 'Delete',
                   style: TextStyle(
                     fontFamily: 'Inter',
                     fontSize: 14,
@@ -610,6 +614,7 @@ class _ZeroDNSScreenState extends State<ZeroDNSScreen> {
   }
 
   void _showRegisterModal() {
+    final isZh = ZeroTheme.isZh(context);
     final controller = TextEditingController();
     int price = 0;
     bool premium = false;
@@ -651,14 +656,14 @@ class _ZeroDNSScreenState extends State<ZeroDNSScreen> {
                     ),
                     SizedBox(height: ZeroSpacing.lg),
                     Text(
-                      'Register New Domain',
+                      isZh ? '注册新域名' : 'Register New Domain',
                       style: ZeroTypography.headline(context).copyWith(
                         color: context.zAccent,
                       ),
                     ),
                     SizedBox(height: ZeroSpacing.xs),
                     Text(
-                      'Choose your .zero domain name',
+                      isZh ? '选择你的 .zero 域名' : 'Choose your .zero domain name',
                       style: ZeroTypography.body(context),
                     ),
                     SizedBox(height: ZeroSpacing.lg),
@@ -744,8 +749,8 @@ class _ZeroDNSScreenState extends State<ZeroDNSScreen> {
                             Expanded(
                               child: Text(
                                 available
-                                    ? '${name}.zero is available'
-                                    : '${name}.zero is already taken',
+                                    ? (isZh ? '${name}.zero 可用' : '${name}.zero is available')
+                                    : (isZh ? '${name}.zero 已被注册' : '${name}.zero is already taken'),
                                 style: ZeroTypography.bodyBold(context).copyWith(
                                   fontSize: 13,
                                   color: available
@@ -814,7 +819,7 @@ class _ZeroDNSScreenState extends State<ZeroDNSScreen> {
                           ),
                         ),
                         child: Text(
-                          'Register',
+                          isZh ? '注册' : 'Register',
                           style: TextStyle(
                             fontFamily: 'Inter',
                             fontSize: 14,
@@ -866,15 +871,17 @@ class _ZeroDNSScreenState extends State<ZeroDNSScreen> {
   }
 
   String _formatDate(DateTime date) {
-    final months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
-    ];
+    final isZh = ZeroTheme.isZh(context);
+    final months = isZh
+        ? ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月']
+        : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+           'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     return '${months[date.month - 1]} ${date.day}, ${date.year}';
   }
 
   @override
   Widget build(BuildContext context) {
+    final isZh = ZeroTheme.isZh(context);
     return Scaffold(
       backgroundColor: context.zBg,
       appBar: AppBar(
@@ -885,7 +892,7 @@ class _ZeroDNSScreenState extends State<ZeroDNSScreen> {
             colors: [context.zAccent, context.zCeladon],
           ).createShader(bounds),
           child: Text(
-            'ZeroDNS · .zero Domains',
+            isZh ? 'ZeroDNS · .zero 域名' : 'ZeroDNS · .zero Domains',
             style: TextStyle(
               fontFamily: 'Inter',
               fontSize: 20,
@@ -910,7 +917,7 @@ class _ZeroDNSScreenState extends State<ZeroDNSScreen> {
         ),
         icon: Icon(Icons.add, size: 20, color: context.zAccent),
         label: Text(
-          'Register New Domain',
+          isZh ? '注册新域名' : 'Register New Domain',
           style: TextStyle(
             fontFamily: 'Inter',
             fontSize: 13,
@@ -922,8 +929,8 @@ class _ZeroDNSScreenState extends State<ZeroDNSScreen> {
       body: CustomScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         slivers: [
-          SliverToBoxAdapter(child: _buildStatsHeader()),
-          SliverToBoxAdapter(child: _buildSearchSection()),
+          SliverToBoxAdapter(child: _buildStatsHeader(isZh)),
+          SliverToBoxAdapter(child: _buildSearchSection(isZh)),
           SliverToBoxAdapter(
             child: Padding(
               padding: EdgeInsets.only(
@@ -935,7 +942,7 @@ class _ZeroDNSScreenState extends State<ZeroDNSScreen> {
               child: Row(
                 children: [
                   Text(
-                    'MY DOMAINS',
+                    isZh ? '我的域名' : 'MY DOMAINS',
                     style: ZeroTypography.title(context).copyWith(
                       color: context.zTextSecondary,
                       letterSpacing: 2,
@@ -944,7 +951,7 @@ class _ZeroDNSScreenState extends State<ZeroDNSScreen> {
                   ),
                   const Spacer(),
                   Text(
-                    '${_myDomains.length} domains',
+                    isZh ? '${_myDomains.length} 个域名' : '${_myDomains.length} domains',
                     style: ZeroTypography.caption(context).copyWith(
                       color: context.zAccent,
                       letterSpacing: 1,
@@ -970,14 +977,14 @@ class _ZeroDNSScreenState extends State<ZeroDNSScreen> {
                     ),
                     SizedBox(height: ZeroSpacing.md),
                     Text(
-                      'No domains yet',
+                      isZh ? '暂无域名' : 'No domains yet',
                       style: ZeroTypography.bodyBold(context).copyWith(
                         color: context.zTextTertiary,
                       ),
                     ),
                     SizedBox(height: ZeroSpacing.xs),
                     Text(
-                      'Register your first .zero domain',
+                      isZh ? '注册你的第一个 .zero 域名' : 'Register your first .zero domain',
                       style: ZeroTypography.caption(context),
                     ),
                   ],
@@ -987,7 +994,7 @@ class _ZeroDNSScreenState extends State<ZeroDNSScreen> {
           else
             SliverList(
               delegate: SliverChildBuilderDelegate(
-                (ctx, i) => _buildDomainTile(_myDomains[i]),
+                (ctx, i) => _buildDomainTile(_myDomains[i], isZh),
                 childCount: _myDomains.length,
               ),
             ),
@@ -997,7 +1004,7 @@ class _ZeroDNSScreenState extends State<ZeroDNSScreen> {
     );
   }
 
-  Widget _buildStatsHeader() {
+  Widget _buildStatsHeader(bool isZh) {
     return Container(
       margin: EdgeInsets.fromLTRB(
         ZeroSpacing.screenHorizontal,
@@ -1017,7 +1024,7 @@ class _ZeroDNSScreenState extends State<ZeroDNSScreen> {
               child: _statItem(
                 Icons.language,
                 '${_myDomains.length}',
-                'Total Domains',
+                isZh ? '域名总数' : 'Total Domains',
               ),
             ),
             Container(
@@ -1029,7 +1036,7 @@ class _ZeroDNSScreenState extends State<ZeroDNSScreen> {
               child: _statItem(
                 Icons.monetization_on_outlined,
                 '$_totalValue ZERO',
-                'Total Value',
+                isZh ? '总价值' : 'Total Value',
               ),
             ),
           ],
@@ -1070,7 +1077,7 @@ class _ZeroDNSScreenState extends State<ZeroDNSScreen> {
     );
   }
 
-  Widget _buildSearchSection() {
+  Widget _buildSearchSection(bool isZh) {
     return Container(
       margin: EdgeInsets.symmetric(
         horizontal: ZeroSpacing.screenHorizontal,
@@ -1093,7 +1100,7 @@ class _ZeroDNSScreenState extends State<ZeroDNSScreen> {
                 color: context.zTextPrimary,
               ),
               decoration: InputDecoration(
-                hintText: 'Search .zero domain...',
+                hintText: isZh ? '搜索 .zero 域名...' : 'Search .zero domain...',
                 hintStyle: ZeroTypography.body(context).copyWith(
                   color: context.zTextTertiary,
                 ),
@@ -1119,13 +1126,13 @@ class _ZeroDNSScreenState extends State<ZeroDNSScreen> {
             ),
           ),
           if (_searching) SizedBox(height: ZeroSpacing.sm),
-          if (_searching) _buildSearchResult(),
+          if (_searching) _buildSearchResult(isZh),
         ],
       ),
     );
   }
 
-  Widget _buildSearchResult() {
+  Widget _buildSearchResult(bool isZh) {
     final name = _searchController.text.trim().toLowerCase();
     final isTaken = !(_available ?? false);
 
@@ -1179,7 +1186,9 @@ class _ZeroDNSScreenState extends State<ZeroDNSScreen> {
                     ),
                     SizedBox(width: ZeroSpacing.xs),
                     Text(
-                      isTaken ? 'Already registered' : 'Available',
+                      isTaken
+                          ? (isZh ? '已被注册' : 'Already registered')
+                          : (isZh ? '可用' : 'Available'),
                       style: ZeroTypography.caption(context).copyWith(
                         color: isTaken ? context.zError : context.zSuccess,
                       ),
@@ -1247,7 +1256,7 @@ class _ZeroDNSScreenState extends State<ZeroDNSScreen> {
                       borderRadius: BorderRadius.circular(ZeroSpacing.chipRadius),
                     ),
                     child: Text(
-                      'Register',
+                      isZh ? '注册' : 'Register',
                       style: TextStyle(
                         fontFamily: 'Inter',
                         fontSize: 12,
@@ -1265,7 +1274,7 @@ class _ZeroDNSScreenState extends State<ZeroDNSScreen> {
     );
   }
 
-  Widget _buildDomainTile(ZeroDomain domain) {
+  Widget _buildDomainTile(ZeroDomain domain, bool isZh) {
     final isActive = domain.expiresAt.isAfter(DateTime.now());
     final daysUntilExpiry = domain.expiresAt.difference(DateTime.now()).inDays;
     final isGrace = !isActive && daysUntilExpiry > -90;
@@ -1343,7 +1352,11 @@ class _ZeroDNSScreenState extends State<ZeroDNSScreen> {
                           ),
                         ),
                         child: Text(
-                          isActive ? 'Active' : isGrace ? 'Grace' : 'Expired',
+                          isActive
+                              ? (isZh ? '有效' : 'Active')
+                              : isGrace
+                                  ? (isZh ? '宽限期' : 'Grace')
+                                  : (isZh ? '已过期' : 'Expired'),
                           style: TextStyle(
                             fontFamily: 'Inter',
                             fontSize: 10,
@@ -1416,7 +1429,9 @@ class _ZeroDNSScreenState extends State<ZeroDNSScreen> {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text(
-                              '${domain.name}.zero copied',
+                              isZh
+                                  ? '${domain.name}.zero 已复制'
+                                  : '${domain.name}.zero copied',
                               style: ZeroTypography.caption(context).copyWith(
                                 color: context.zTextPrimary,
                               ),
@@ -1458,7 +1473,7 @@ class _ZeroDNSScreenState extends State<ZeroDNSScreen> {
                           ),
                           SizedBox(width: ZeroSpacing.sm),
                           Text(
-                            'Transfer',
+                            isZh ? '转移' : 'Transfer',
                             style: ZeroTypography.body(context).copyWith(
                               color: context.zTextPrimary,
                               fontSize: 14,
@@ -1474,7 +1489,7 @@ class _ZeroDNSScreenState extends State<ZeroDNSScreen> {
                           Icon(Icons.copy, size: 18, color: context.zTextSecondary),
                           SizedBox(width: ZeroSpacing.sm),
                           Text(
-                            'Copy',
+                            isZh ? '复制' : 'Copy',
                             style: ZeroTypography.body(context).copyWith(
                               color: context.zTextPrimary,
                               fontSize: 14,
@@ -1490,7 +1505,7 @@ class _ZeroDNSScreenState extends State<ZeroDNSScreen> {
                           Icon(Icons.delete_outline, size: 18, color: context.zError),
                           SizedBox(width: ZeroSpacing.sm),
                           Text(
-                            'Delete',
+                            isZh ? '删除' : 'Delete',
                             style: ZeroTypography.body(context).copyWith(
                               color: context.zError,
                               fontSize: 14,

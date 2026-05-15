@@ -103,7 +103,7 @@ class NodeDiscoveryService {
   factory NodeDiscoveryService() => _instance;
   NodeDiscoveryService._internal();
 
-  List<BootstrapNode> _bootstrapNodes = [];
+  final List<BootstrapNode> _bootstrapNodes = [];
   final List<DiscoveredPeer> _discoveredPeers = [];
   final Random _random = Random();
 
@@ -125,51 +125,6 @@ class NodeDiscoveryService {
     'go-zero/1.0.0',
     'rust-zero/0.8.5',
   ];
-
-  void seedBootstrapNodes() {
-    _bootstrapNodes = [
-      BootstrapNode(
-        id: 'bootstrap-us',
-        address: '/dns4/bootstrap-us.zero.network/tcp/4001',
-        region: 'us-east',
-        status: 'online',
-        latency: 12,
-        peersConnected: 4001,
-        uptime: 99.99,
-        lastSeen: DateTime.now(),
-      ),
-      BootstrapNode(
-        id: 'bootstrap-eu',
-        address: '/dns4/bootstrap-eu.zero.network/tcp/4001',
-        region: 'eu-west',
-        status: 'online',
-        latency: 180,
-        peersConnected: 3200,
-        uptime: 99.97,
-        lastSeen: DateTime.now(),
-      ),
-      BootstrapNode(
-        id: 'bootstrap-asia',
-        address: '/dns4/bootstrap-asia.zero.network/tcp/4001',
-        region: 'asia-east',
-        status: 'online',
-        latency: 35,
-        peersConnected: 2800,
-        uptime: 99.95,
-        lastSeen: DateTime.now(),
-      ),
-      BootstrapNode(
-        id: 'bootstrap-sg',
-        address: '/dns4/bootstrap-sg.zero.network/tcp/4001',
-        region: 'asia-se',
-        status: 'online',
-        latency: 25,
-        peersConnected: 2100,
-        uptime: 99.98,
-        lastSeen: DateTime.now(),
-      ),
-    ];
-  }
 
   List<DiscoveredPeer> discoverPeers({String? targetPeerId}) {
     final peerCount = 8 + _random.nextInt(8);

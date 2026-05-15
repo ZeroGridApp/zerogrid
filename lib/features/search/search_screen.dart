@@ -55,67 +55,9 @@ class _SearchScreenState extends State<SearchScreen> with TickerProviderStateMix
   Timer? _debounce;
   late final TabController _tabController;
 
-  final List<_SearchContact> _contacts = const [
-    _SearchContact(name: '0xCat', zeroId: '0xCat.zero'),
-    _SearchContact(name: 'VoidWalker', zeroId: 'VoidWalker.zero'),
-    _SearchContact(name: 'Ming', zeroId: 'Ming.zero'),
-    _SearchContact(name: 'SolSurfer', zeroId: 'SolSurfer.zero'),
-    _SearchContact(name: 'EthAnon', zeroId: 'EthAnon.zero'),
-    _SearchContact(name: 'Alice', zeroId: 'Alice.zero'),
-    _SearchContact(name: 'Bob', zeroId: 'Bob.zero'),
-    _SearchContact(name: 'Charlie', zeroId: 'Charlie.zero'),
-    _SearchContact(name: '王伟', zeroId: 'WangWei.zero'),
-    _SearchContact(name: '张明', zeroId: 'ZhangMing.zero'),
-    _SearchContact(name: '李华', zeroId: 'LiHua.zero'),
-  ];
+  final List<_SearchContact> _contacts = const [];
 
-  final List<_DemoGroup> _groups = const [
-    _DemoGroup(
-      id: 'group_001',
-      name: 'CipherSquad',
-      topic: 'Cryptography & Privacy Tech',
-      memberCount: 128,
-      initials: 'CS',
-      avatarColorIndex: 0,
-      lastMessageTime: '14:32',
-    ),
-    _DemoGroup(
-      id: 'group_002',
-      name: 'Zero Builders',
-      topic: 'Zero Ecosystem Development',
-      memberCount: 47,
-      initials: 'ZB',
-      avatarColorIndex: 1,
-      lastMessageTime: '11:15',
-    ),
-    _DemoGroup(
-      id: 'group_003',
-      name: 'Web3 中文圈',
-      topic: '区块链技术与去中心化讨论',
-      memberCount: 356,
-      initials: 'W3',
-      avatarColorIndex: 2,
-      lastMessageTime: '09:48',
-    ),
-    _DemoGroup(
-      id: 'group_004',
-      name: 'DeFi Lounge',
-      topic: 'Decentralized Finance Alpha',
-      memberCount: 89,
-      initials: 'DL',
-      avatarColorIndex: 3,
-      lastMessageTime: '昨天',
-    ),
-    _DemoGroup(
-      id: 'group_005',
-      name: 'Node Operators',
-      topic: 'Infrastructure & Node Management',
-      memberCount: 34,
-      initials: 'NO',
-      avatarColorIndex: 4,
-      lastMessageTime: '昨天',
-    ),
-  ];
+  final List<_DemoGroup> _groups = const [];
 
   @override
   void initState() {

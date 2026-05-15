@@ -510,7 +510,14 @@ class _SupportScreenState extends State<SupportScreen>
           ),
           const SizedBox(height: ZeroSpacing.sm),
           ZeroCard(
-            onTap: () {},
+            onTap: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(isZh ? '截图功能即将推出' : 'Screenshot coming soon'),
+                  duration: const Duration(seconds: 2),
+                ),
+              );
+            },
             padding: EdgeInsets.symmetric(
               horizontal: ZeroSpacing.md,
               vertical: ZeroSpacing.md - 6,

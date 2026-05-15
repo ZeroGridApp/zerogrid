@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import '../../core/theme/colors.dart';
 import '../../core/theme/spacing.dart';
 import '../../core/theme/typography.dart';
+import '../../core/theme/zero_theme.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../../widgets/zero_button.dart';
 import '../../widgets/zero_card.dart';
@@ -32,40 +33,11 @@ class _AddContactScreenState extends State<AddContactScreen>
 
   final List<_Contact> _contacts = [];
 
-  final List<_FriendRequest> _friendRequests = [
-    _FriendRequest(
-      zeroId: 'Z8P2K5W1RT',
-      displayName: 'Node_B21C',
-      message: 'Hi, let\'s connect!',
-    ),
-    _FriendRequest(
-      zeroId: 'Z5A9M4L3VQ',
-      displayName: 'CipherNode_9F',
-      message: 'Hi, let\'s connect!',
-    ),
-    _FriendRequest(
-      zeroId: 'Z2X7N1K8WP',
-      displayName: 'NodeRunner_42',
-      message: 'Hi, let\'s connect!',
-    ),
-  ];
+  final List<_FriendRequest> _friendRequests = [];
 
-  final List<_NearbyDevice> _nearbyDevices = [
-    _NearbyDevice(name: 'Coffee Shop Node', zeroId: 'Z4F7A2K9MQ', signalStrength: 0.92),
-    _NearbyDevice(name: 'Alice\'s Phone', zeroId: 'Z123456789', signalStrength: 0.78),
-    _NearbyDevice(name: 'ZeroNode-7F', zeroId: 'Z9T3R6E1WP', signalStrength: 0.65),
-    _NearbyDevice(name: 'RelayPoint-X2', zeroId: 'Z7H1L4N8SB', signalStrength: 0.51),
-    _NearbyDevice(name: 'Bob\'s Laptop', zeroId: 'Z1M6C3P0KU', signalStrength: 0.38),
-  ];
+  final List<_NearbyDevice> _nearbyDevices = [];
 
-  final List<_DemoContact> _demoContacts = [
-    _DemoContact(zeroId: 'Z123456789', displayName: 'Alice', online: true),
-    _DemoContact(zeroId: 'Z8P2K5W1RT', displayName: 'Node_B21C', online: true),
-    _DemoContact(zeroId: 'Z5A9M4L3VQ', displayName: 'CipherNode_9F', online: false),
-    _DemoContact(zeroId: 'Z3K7M2N8XP', displayName: 'Node_3K7M', online: true),
-    _DemoContact(zeroId: 'Z9X4Q6L1HY', displayName: 'DarkFox', online: false),
-    _DemoContact(zeroId: 'Z6B8V5T2RD', displayName: 'ZeroPilot', online: true),
-  ];
+  final List<_DemoContact> _demoContacts = [];
 
   @override
   void initState() {
@@ -205,21 +177,6 @@ class _AddContactScreenState extends State<AddContactScreen>
     }
   }
 
-  void _simulateQRScan() {
-    final l10n = AppLocalizations.of(context);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(l10n.qrScanningSim),
-        backgroundColor: context.zAccent,
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-    Future.delayed(const Duration(seconds: 1), () {
-      if (!mounted) return;
-      _idController.text = 'Z3K7M2N8XP';
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -295,16 +252,34 @@ class _AddContactScreenState extends State<AddContactScreen>
           if (!_added && _searchQuery.isEmpty) ...[
             _buildQRScanner(),
             const SizedBox(height: ZeroSpacing.lg),
-            Text(
-              l10n.searchByZeroId,
-              style: ZeroTypography.caption(context).copyWith(
-                letterSpacing: 2,
-                fontWeight: FontWeight.w600,
-                color: context.zTextTertiary,
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: ZeroSpacing.xxl),
+                child: Column(
+                  children: [
+                    Icon(
+                      Icons.search_off_rounded,
+                      size: 64,
+                      color: context.zTextTertiary.withOpacity(0.3),
+                    ),
+                    const SizedBox(height: ZeroSpacing.md),
+                    Text(
+                      ZeroTheme.isZh(context) ? '输入 ZeroID 搜索' : 'Enter a ZeroID to search',
+                      style: ZeroTypography.body(context).copyWith(
+                        color: context.zTextTertiary,
+                      ),
+                    ),
+                    const SizedBox(height: ZeroSpacing.xs),
+                    Text(
+                      ZeroTheme.isZh(context) ? '或使用 QR 码扫描' : 'or use QR code scanning',
+                      style: ZeroTypography.caption(context).copyWith(
+                        color: context.zTextDisabled,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-            const SizedBox(height: ZeroSpacing.sm),
-            _buildDemoContactList(),
           ],
           if (!_added && _searchQuery.isNotEmpty) _buildFilteredResults(),
           const SizedBox(height: ZeroSpacing.xxl),
@@ -353,7 +328,15 @@ class _AddContactScreenState extends State<AddContactScreen>
               ),
               const SizedBox(width: ZeroSpacing.sm),
               GestureDetector(
-                onTap: _simulateQRScan,
+                onTap: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(ZeroTheme.isZh(context) ? 'QR 扫描即将推出' : 'QR scanning coming soon'),
+                      backgroundColor: context.zAccent,
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                },
                 child: Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: ZeroSpacing.sm,
@@ -519,12 +502,6 @@ class _AddContactScreenState extends State<AddContactScreen>
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildDemoContactList() {
-    return Column(
-      children: _demoContacts.map((c) => _buildDemoContactTile(c)).toList(),
     );
   }
 
@@ -738,7 +715,15 @@ class _AddContactScreenState extends State<AddContactScreen>
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               GestureDetector(
-                onTap: _simulateQRScan,
+                onTap: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(ZeroTheme.isZh(context) ? 'QR 扫描即将推出' : 'QR scanning coming soon'),
+                      backgroundColor: context.zAccent,
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                },
                 child: Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 20,
@@ -834,16 +819,46 @@ class _AddContactScreenState extends State<AddContactScreen>
           const SizedBox(height: ZeroSpacing.lg),
           _buildRadarWidget(),
           const SizedBox(height: ZeroSpacing.lg),
-          Text(
-            isZh ? '发现设备' : 'DISCOVERED',
-            style: ZeroTypography.caption(context).copyWith(
-              letterSpacing: 2,
-              fontWeight: FontWeight.w600,
-              color: context.zTextTertiary,
+          if (_nearbyDevices.isNotEmpty) ...[
+            Text(
+              isZh ? '发现设备' : 'DISCOVERED',
+              style: ZeroTypography.caption(context).copyWith(
+                letterSpacing: 2,
+                fontWeight: FontWeight.w600,
+                color: context.zTextTertiary,
+              ),
             ),
-          ),
-          const SizedBox(height: ZeroSpacing.sm),
-          ..._nearbyDevices.map((d) => _buildNearbyDeviceTile(d)),
+            const SizedBox(height: ZeroSpacing.sm),
+            ..._nearbyDevices.map((d) => _buildNearbyDeviceTile(d)),
+          ] else
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: ZeroSpacing.xxxl),
+              child: Center(
+                child: Column(
+                  children: [
+                    Icon(
+                      Icons.bluetooth_searching_rounded,
+                      size: 64,
+                      color: context.zTextTertiary.withOpacity(0.3),
+                    ),
+                    const SizedBox(height: ZeroSpacing.md),
+                    Text(
+                      isZh ? '未发现附近设备' : 'No nearby devices found',
+                      style: ZeroTypography.body(context).copyWith(
+                        color: context.zTextTertiary,
+                      ),
+                    ),
+                    const SizedBox(height: ZeroSpacing.xs),
+                    Text(
+                      isZh ? '开启蓝牙和 DHT 以发现附近设备' : 'Enable BLE and DHT to discover nearby devices',
+                      style: ZeroTypography.caption(context).copyWith(
+                        color: context.zTextDisabled,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           const SizedBox(height: ZeroSpacing.xxl),
         ],
       ),
@@ -885,7 +900,9 @@ class _AddContactScreenState extends State<AddContactScreen>
               ),
               const Spacer(),
               Text(
-                isZh ? '${_nearbyDevices.length} 个设备' : '${_nearbyDevices.length} devices',
+                isZh
+                    ? '${_nearbyDevices.isEmpty ? "正在搜索" : "${_nearbyDevices.length} 个设备"}'
+                    : '${_nearbyDevices.isEmpty ? "Scanning" : "${_nearbyDevices.length} devices"}',
                 style: ZeroTypography.monoSmall(context),
               ),
             ],

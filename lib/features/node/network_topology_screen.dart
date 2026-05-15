@@ -20,7 +20,6 @@ class _ZeroNetworkTopologyScreenState extends State<ZeroNetworkTopologyScreen> {
   @override
   void initState() {
     super.initState();
-    _nodeService.seedDemoData();
   }
 
   @override
@@ -40,11 +39,11 @@ class _ZeroNetworkTopologyScreenState extends State<ZeroNetworkTopologyScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: ZeroSpacing.lg),
-            _buildNetworkOverview(isZh, stats),
+            _buildNetworkOverview(isZh, stats ?? NetworkStats(totalNodes: 0, onlineNodes: 0, averageLatency: 0, totalBandwidth: 0, totalStorage: 0, topPeers: [])),
             const SizedBox(height: ZeroSpacing.lg),
             _buildNatStatus(isZh),
             const SizedBox(height: ZeroSpacing.lg),
-            _buildTopologyMap(isZh, peers, nodeStatus),
+            _buildTopologyMap(isZh, peers, nodeStatus ?? NodeStatus(name: '', nodeId: '', status: 'offline', nodeType: 'full', uptime: 0, peersConnected: 0, latency: 0, bandwidthUp: 0, bandwidthDown: 0, storageUsed: 0, storageTotal: 0, blocksSynced: 0, blocksTotal: 0, rewardsEarned: 0, startedAt: DateTime.now())),
             const SizedBox(height: ZeroSpacing.lg),
             _buildPeerList(isZh, peers),
             const SizedBox(height: ZeroSpacing.xxl),

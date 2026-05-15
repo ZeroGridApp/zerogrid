@@ -90,7 +90,14 @@ class _StakingCalculatorScreenState extends State<StakingCalculatorScreen> {
             ZeroButton(
               label: isZh ? '开始质押' : 'Start Staking',
               icon: Icons.lock,
-              onTap: () {},
+              onTap: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(isZh ? '质押功能即将推出' : 'Staking coming soon'),
+                    duration: const Duration(seconds: 2),
+                  ),
+                );
+              },
             ),
             const SizedBox(height: ZeroSpacing.xxl),
           ],

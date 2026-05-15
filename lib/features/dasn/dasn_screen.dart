@@ -29,7 +29,6 @@ class _DASNScreenState extends State<DASNScreen> {
   @override
   void initState() {
     super.initState();
-    _storage.seedDemoFiles();
     _loadFiles();
   }
 

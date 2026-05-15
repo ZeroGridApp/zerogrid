@@ -23,7 +23,6 @@ class _ChannelScreenState extends State<ChannelScreen> {
   @override
   void initState() {
     super.initState();
-    _service.seedDemoData();
   }
 
   @override

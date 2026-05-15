@@ -191,36 +191,6 @@ class DASNStorageService {
 
   int getMaxStorageBytes() => _maxStorageBytes;
 
-  void seedDemoFiles() {
-    if (_files.isNotEmpty) return;
-
-    final fakePdfContent = _generatePlaceholderBytes(4200000);
-    final pdfFile = storeFile('whitepaper.pdf', fakePdfContent, 'PDF');
-    pdfFile.isEncrypted = true;
-    pdfFile.encryptionKey = 'aes256-8742-1938';
-    pdfFile.shareCount = 3;
-    pdfFile.sharedWith = ['alice.zero', 'bob.zero'];
-
-    final fakePngContent = _generatePlaceholderBytes(1200000);
-    final pngFile = storeFile('logo.png', fakePngContent, 'Image');
-    pngFile.shareCount = 1;
-    pngFile.sharedWith = ['carol.zero'];
-
-    final fakeZipContent = _generatePlaceholderBytes(8200000);
-    final zipFile = storeFile('audit.zip', fakeZipContent, 'Archive');
-    zipFile.isEncrypted = true;
-    zipFile.encryptionKey = 'aes256-5521-4012';
-    zipFile.shareCount = 5;
-    zipFile.sharedWith = ['alice.zero', 'bob.zero', 'dave.zero'];
-    zipFile.downloadCount = 12;
-
-    final fakeVideoContent = _generatePlaceholderBytes(6400000);
-    final videoFile = storeFile('intro.mp4', fakeVideoContent, 'Video');
-    videoFile.shareCount = 2;
-    videoFile.sharedWith = ['alice.zero'];
-    videoFile.downloadCount = 5;
-  }
-
   Uint8List _generatePlaceholderBytes(int size) {
     final bytes = Uint8List(size);
     for (var i = 0; i < size; i++) {

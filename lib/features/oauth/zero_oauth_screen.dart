@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import '../../core/theme/colors.dart';
 import '../../core/theme/spacing.dart';
@@ -16,13 +17,15 @@ class ZeroOAuthScreen extends StatefulWidget {
 class _ZeroOAuthScreenState extends State<ZeroOAuthScreen> with SingleTickerProviderStateMixin {
   final _oauthService = ZeroOAuthService();
   late TabController _tabController;
-  final String _userDid = 'did:zero:ZA1B2C3D4E';
+  late final String _userDid;
 
   @override
   void initState() {
     super.initState();
+    final rng = Random();
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    _userDid = 'did:zero:Z${List.generate(8, (_) => chars[rng.nextInt(chars.length)]).join()}';
     _tabController = TabController(length: 2, vsync: this);
-    _oauthService.seedOAuthData();
   }
 
   @override

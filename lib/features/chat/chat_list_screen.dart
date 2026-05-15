@@ -21,15 +21,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
   final _searchController = TextEditingController();
   String _searchQuery = '';
 
-  List<_ChatPreview> _chats = [
-    _ChatPreview(name: '0xCat', lastMessage: '新的 NFT drop 准备好了吗？', lastType: MsgType.text, time: '2m ago', unread: 3, isOnline: true),
-    _ChatPreview(name: 'VoidWalker', lastMessage: '[Voice 0:42]', lastType: MsgType.voice, time: '1h ago', unread: 0),
-    _ChatPreview(name: 'Ming', lastMessage: '[Image] audit_report_final.png', lastType: MsgType.image, time: '3h ago', unread: 1, isOnline: true),
-    _ChatPreview(name: 'CipherSquad', lastMessage: 'Alice: 白皮书 v2 已发布', lastType: MsgType.text, time: '5h ago', unread: 12, isGroup: true, memberCount: 42),
-    _ChatPreview(name: 'SolSurfer', lastMessage: '[File] tokenomics.pdf · 3.2MB', lastType: MsgType.file, time: '1d ago', unread: 0),
-    _ChatPreview(name: 'ZeroCore', lastMessage: '系统升级 v0.2.0 已推送', lastType: MsgType.system, time: '2d ago', unread: 0),
-    _ChatPreview(name: 'EthAnon', lastMessage: '[Location] DeFi Summit', lastType: MsgType.location, time: '3d ago', unread: 0),
-  ];
+  List<_ChatPreview> _chats = [];
 
   List<_ChatPreview> get _sortedChats {
     final list = _searchQuery.isEmpty
